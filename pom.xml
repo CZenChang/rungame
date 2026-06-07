@@ -20,8 +20,9 @@
 
 	<properties>
 		<java.version>25</java.version>
-		<!-- GraalVM Native Build Tools -->
-		<native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+		<!-- 覆蓋 Spring Boot 4.x BOM 中尚未發布的版本 -->
+		<native-build-tools-plugin.version>0.10.6</native-build-tools-plugin.version>
+		<testcontainers.version>1.21.4</testcontainers.version>
 	</properties>
 
 	<dependencies>
@@ -37,7 +38,7 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- ✅ PostgreSQL — 最佳 GraalVM Native 支援 -->
+		<!-- PostgreSQL — 最佳 GraalVM Native 支援 -->
 		<dependency>
 			<groupId>org.postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -71,6 +72,14 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- embedded-postgres — 本地開發用，optional 僅供編譯，不打包 -->
+		<dependency>
+			<groupId>io.zonky.test</groupId>
+			<artifactId>embedded-postgres</artifactId>
+			<version>2.0.7</version>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- Testcontainers — PostgreSQL 整合測試 -->
@@ -114,8 +123,27 @@
 		</plugins>
 	</build>
 
+	<pluginRepositories>
+		<pluginRepository>
+			<id>central</id>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</pluginRepository>
+	</pluginRepositories>
+
 	<!-- ✅ Native Profile — 用 -Pnative 啟用 -->
 	<profiles>
+		<!-- ✅ Local Profile — 用 -Plocal 啟用，spring-boot:run 本地開發用 -->
+		<profile>
+			<id>local</id>
+			<dependencies>
+				<dependency>
+					<groupId>io.zonky.test</groupId>
+					<artifactId>embedded-postgres</artifactId>
+					<version>2.0.7</version>
+				</dependency>
+			</dependencies>
+		</profile>
+
 		<profile>
 			<id>native</id>
 			<build>
@@ -123,6 +151,7 @@
 					<plugin>
 						<groupId>org.graalvm.buildtools</groupId>
 						<artifactId>native-maven-plugin</artifactId>
+						<version>${native-build-tools-plugin.version}</version>
 						<extensions>true</extensions>
 						<configuration>
 							<imageName>${project.artifactId}</imageName>

@@ -54,7 +54,7 @@ management:
 logging:
   level:
     root: INFO
-    com.dogodnoman.rungame: DEBUG
+    com.dodognoman.rungame: DEBUG
     org.hibernate.SQL: WARN
 
 server:

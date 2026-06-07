@@ -8,8 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `rungame` 是一個以 **Spring Boot 4.x + Java 25 + GraalVM Native + PostgreSQL** 為核心技術棧的後端服務，使用 Maven 管理依賴。
 
-- **Group ID**：`com.dodognoman`（注意：Java 套件路徑為 `com.dogodnoman`，兩者拼法不同，日後統一時需一併修正）
-- **主程式進入點**：`src/main/java/com/dogodnoman/rungame/RungameApplication.java`
+- **Group ID**：`com.dodognoman`
+- **主程式進入點**：`src/main/java/com/dodognoman/rungame/RungameApplication.java`
 
 ---
 

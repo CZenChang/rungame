@@ -14,6 +14,98 @@
 
 ---
 
+## 快速開始
+
+### 前置需求
+
+| 方案 | 需求 |
+|------|------|
+| 方案一（Docker Compose） | Docker & Docker Compose |
+| 方案二（Local Profile） | 無（embedded-postgres 自動啟動） |
+| 方案三 / 四（Native） | GraalVM Community 25+（含 `native-image`） |
+
+---
+
+### 方案一：Docker Compose + 外部 PostgreSQL
+
+適合需要完整 PostgreSQL 環境或接近生產設定時使用。
+
+**1. 啟動 PostgreSQL**
+
+```bash
+docker compose up -d
+```
+
+**2. 啟動應用程式**
+
+```bash
+# Linux / macOS
+./mvnw spring-boot:run
+
+# Windows
+mvnw.cmd spring-boot:run
+```
+---
+
+### 方案二：Local Profile（embedded-postgres，不需 Docker）
+
+適合本地開發快速啟動，無需安裝或啟動 Docker。資料存於專案目錄下的 `dbdata/`，重啟後保留。
+
+**1. 在 IntelliJ IDEA 設定 Run Configuration**
+
+- Active profiles 填入：`local`
+- ![img.png](img.png)
+- 右側 Maven 面板 → Profiles → 勾選 `local`
+
+**2. 或用指令啟動**
+
+```bash
+# Linux / macOS
+./mvnw spring-boot:run -Plocal -Dspring-boot.run.profiles=local
+
+# Windows
+mvnw.cmd spring-boot:run -Plocal -Dspring-boot.run.profiles=local
+```
+
+> **注意**：停止應用程式前若有 postgres process 殘留（port 15432），重新啟動前需先手動終止：
+> ```powershell
+> netstat -ano | findstr :15432
+> taskkill /PID <PID> /F
+> ```
+
+---
+
+### 方案三：編譯 Native Binary
+
+**Windows 額外需求**：GraalVM Native Image 需要 Visual Studio 2022 的 C++ 工具鏈。
+
+1. 安裝 [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)（Community 版即可）
+2. 安裝時勾選 `Desktop development with C++` 工作負載
+3. **必須在 x64 Native Tools Command Prompt for VS 2022 裡執行**（開始選單搜尋），不能用一般 PowerShell
+
+```cmd
+# Windows（在 x64 Native Tools Command Prompt 執行）
+mvnw.cmd -Pnative -DskipTests package
+
+# Linux / macOS
+./mvnw -Pnative -DskipTests package
+```
+
+```bash
+# 執行 native binary（啟動時間 < 100ms）
+./target/rungame
+```
+
+### 方案四：Native Binary + Docker 打包
+
+```bash
+docker build -t rungame:native .
+docker run -p 8080:8080 \
+  -e DB_HOST=host.docker.internal \
+  rungame:native
+```
+
+---
 ## 為什麼選 PostgreSQL？
 
 在 Spring Boot 4.x + Java 25 + GraalVM Native 這個組合下，PostgreSQL 是**支援度最高**的選擇：
@@ -25,69 +117,14 @@
 
 ---
 
-## 快速開始
-
-### 前置需求
-- GraalVM Community 25+（需含 `native-image` 元件）
-- Docker & Docker Compose
-
-### 1. 啟動 PostgreSQL
-
-```bash
-docker compose up -d
-```
-
-### 2. 一般 JVM 模式運行
-
-```bash
-./mvnw spring-boot:run
-```
-
-### 3. 編譯 Native Binary
-
-```bash
-# 需要 GraalVM native-image 工具
-./mvnw -Pnative -DskipTests package
-
-# 執行 native binary（啟動時間 < 100ms）
-./target/demo
-```
-
-### 4. Native Binary + Docker 打包
-
-```bash
-docker build -t demo:native .
-docker run -p 8080:8080 \
-  -e DB_HOST=host.docker.internal \
-  demo:native
-```
-
----
 
 ## API 端點
 
 ```
-GET    /api/products              列出所有產品
-GET    /api/products?search=java  關鍵字搜尋
-GET    /api/products?minPrice=10&maxPrice=50  價格區間
-GET    /api/products/{id}         取得單一產品
-POST   /api/products              建立產品
-PUT    /api/products/{id}         更新產品
-DELETE /api/products/{id}         刪除產品
 
 GET    /actuator/health           健康檢查
 GET    /actuator/metrics          指標
 ```
-
-### 範例 Request
-
-```bash
-curl -X POST http://localhost:8080/api/products \
-  -H "Content-Type: application/json" \
-  -d '{"name":"My Product","description":"Desc","price":29.99}'
-```
-
----
 
 ## 環境變數
 

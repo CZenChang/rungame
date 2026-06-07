@@ -26,12 +26,12 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 從 builder 複製 native binary
-COPY --from=builder /build/target/demo .
+COPY --from=builder /build/target/rungame .
 
 # 非 root user
-RUN useradd -r -u 1001 appuser && chown appuser:appuser /app/demo
+RUN useradd -r -u 1001 appuser && chown appuser:appuser /app/rungame
 USER appuser
 
 EXPOSE 8080
 
-ENTRYPOINT ["./demo"]
+ENTRYPOINT ["./rungame"]
