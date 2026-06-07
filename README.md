@@ -26,9 +26,9 @@
 
 ---
 
-### 方案一：Docker Compose + 外部 PostgreSQL
+### 方案一：Docker Compose + 外部 PostgreSQL（推薦）
 
-適合需要完整 PostgreSQL 環境或接近生產設定時使用。
+適合**主力本地開發**使用，資料持久化，環境最接近生產。
 
 **1. 啟動 PostgreSQL**
 
@@ -49,7 +49,7 @@ mvnw.cmd spring-boot:run
 
 ### 方案二：Local Profile（embedded-postgres，不需 Docker）
 
-適合本地開發快速啟動，無需安裝或啟動 Docker。資料存於專案目錄下的 `dbdata/`，重啟後保留。
+適合**快速驗證 API、跑 smoke test**，不在乎資料是否保留。資料為 ephemeral（重啟後清空），Flyway 每次自動重建 schema。不建議作為主力開發環境。
 
 **1. 在 IntelliJ IDEA 設定 Run Configuration**
 
@@ -106,6 +106,48 @@ docker run -p 8080:8080 \
 ```
 
 ---
+
+## 專案 Package 結構
+
+以**業務領域**為主軸拆分 package，共用工具集中在 `common`，基礎設施配置放在 `config`。
+
+```
+com.dodognoman.rungame
+│
+├── RungameApplication.java          # 啟動入口
+│
+├── user/                            # 業務領域：使用者
+│   ├── UserController.java          # REST 端點
+│   ├── UserService.java             # 業務邏輯
+│   ├── dto/                         # 資料傳輸物件（進出 API 的 payload）
+│   │   ├── RegisterRequest.java
+│   │   ├── LoginRequest.java
+│   │   └── AuthResponse.java
+│   └── repo/                        # 資料存取層
+│       ├── User.java                # JPA Entity
+│       └── UserRepository.java      # Spring Data Repository
+│
+├── common/                          # 跨領域共用元件
+│   └── JwtService.java              # JWT 產生 / 驗證
+│
+└── config/                          # 基礎設施配置
+    └── EmbeddedPostgresConfig.java  # local profile 用的 embedded PostgreSQL
+```
+
+### Package 拆分原則
+
+| Package | 放什麼 |
+|---------|--------|
+| `{domain}/` | Controller、Service（同一業務領域的進入點與邏輯） |
+| `{domain}/dto/` | Request / Response 物件，只做資料搬運，不含邏輯 |
+| `{domain}/repo/` | JPA Entity 與 Repository，隱藏資料存取細節 |
+| `common/` | 跨多個領域共用的服務或工具（JWT、加密、通用例外處理等） |
+| `config/` | Spring `@Configuration` 類，負責 Bean 宣告與環境初始化 |
+
+新增業務功能時，以**領域名稱**建立新的頂層 package（例如 `game/`、`leaderboard/`），各自維護自己的 Controller / Service / dto / repo，避免跨領域直接相互依賴。
+
+---
+
 ## 為什麼選 PostgreSQL？
 
 在 Spring Boot 4.x + Java 25 + GraalVM Native 這個組合下，PostgreSQL 是**支援度最高**的選擇：
@@ -121,7 +163,7 @@ docker run -p 8080:8080 \
 ## API 端點
 
 ```
-
+全域 pre path /rungame
 GET    /actuator/health           健康檢查
 GET    /actuator/metrics          指標
 ```

@@ -1,15 +1,16 @@
 package com.dodognoman.rungame.config;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import io.zonky.test.db.postgres.embedded.EmbeddedPostgres;
+import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
-import javax.sql.DataSource;
 import java.io.IOException;
 
 @Configuration
@@ -21,21 +22,35 @@ public class EmbeddedPostgresConfig {
 
     @Bean(destroyMethod = "close")
     public EmbeddedPostgres embeddedPostgres() throws IOException {
-        return EmbeddedPostgres.builder()
+        EmbeddedPostgres pg = EmbeddedPostgres.builder()
                 .setPort(port)
-                .setDataDirectory(java.nio.file.Path.of("dbdata"))
                 .start();
+
+        // 確保 schema 在 Hibernate 初始化前已建立
+        Flyway.configure()
+                .dataSource("jdbc:postgresql://localhost:" + port + "/postgres", "postgres", "")
+                .locations("classpath:db/migration")
+                .baselineOnMigrate(true)
+                .load()
+                .migrate();
+
+        return pg;
     }
 
+    // 確保 dataSource 在 embeddedPostgres 之後才建立連線
     @Bean
-    @Primary
-    public DataSource dataSource(EmbeddedPostgres embeddedPostgres) {
-        HikariConfig config = new HikariConfig();
-        config.setJdbcUrl("jdbc:postgresql://localhost:" + port + "/postgres");
-        config.setUsername("postgres");
-        config.setPassword("");
-        config.setMaximumPoolSize(5);
-        config.setMinimumIdle(1);
-        return new HikariDataSource(config);
+    public static BeanDefinitionRegistryPostProcessor embeddedPostgresDependsOn() {
+        return new BeanDefinitionRegistryPostProcessor() {
+            @Override
+            public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+                if (registry.containsBeanDefinition("dataSource")) {
+                    BeanDefinition ds = registry.getBeanDefinition("dataSource");
+                    ds.setDependsOn("embeddedPostgres");
+                }
+            }
+
+            @Override
+            public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {}
+        };
     }
 }

@@ -21,7 +21,7 @@ spring:
     open-in-view: false          # 關閉 OSIV，避免 native 下 proxy 問題
     show-sql: false
     hibernate:
-      ddl-auto: validate         # Flyway 管 schema，Hibernate 只驗證
+      ddl-auto: validate         # 不要自動 create table
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -33,12 +33,19 @@ spring:
         # ✅ 關閉 enhanced proxies，native image 友善
         bytecode:
           use_reflection_optimizer: false
+        jakarta:
+          persistence:
+            query:
+              timeout: 5000  # 單一 query 超時 5 秒（ms）
 
   # ─── Flyway DB Migration ─────────────────────────────────────────────────
   flyway:
-    enabled: true
+    enabled: false
     locations: classpath:db/migration
     baseline-on-migrate: true
+
+  lifecycle:
+    timeout-per-shutdown-phase: 10s
 
 # ─── Actuator ─────────────────────────────────────────────────────────────
 management:
@@ -59,3 +66,12 @@ logging:
 
 server:
   port: 8080
+  servlet:
+    context-path: /rungame
+  shutdown: graceful
+
+# ─── JWT ──────────────────────────────────────────────────────────────────
+jwt:
+  secret: ${JWT_SECRET:change-me-in-production-must-be-at-least-32-chars!!}
+  access-token-hours: 24
+  refresh-token-days: 30

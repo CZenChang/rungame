@@ -57,14 +57,41 @@
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
 
-		<!-- Flyway — DB migration (Native 支援良好) -->
+		<!-- Flyway — local 開發用；provided = 只供編譯，不打包進 native binary -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
+			<scope>provided</scope>
+		</dependency>
+
+		<!-- JWT -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-api</artifactId>
+			<version>0.12.6</version>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-impl</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt-jackson</artifactId>
+			<version>0.12.6</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<!-- BCrypt 密碼加密（僅 crypto，不引入完整 Spring Security） -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
 
 		<!-- Test -->
@@ -74,12 +101,12 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- embedded-postgres — 本地開發用，optional 僅供編譯，不打包 -->
+		<!-- embedded-postgres — local 開發用；provided = 只供編譯，不打包進 native binary -->
 		<dependency>
 			<groupId>io.zonky.test</groupId>
 			<artifactId>embedded-postgres</artifactId>
 			<version>2.0.7</version>
-			<optional>true</optional>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Testcontainers — PostgreSQL 整合測試 -->
@@ -136,10 +163,22 @@
 		<profile>
 			<id>local</id>
 			<dependencies>
+				<!-- 覆寫 provided → compile，讓 local runtime 可以實際使用 -->
+				<dependency>
+					<groupId>org.flywaydb</groupId>
+					<artifactId>flyway-core</artifactId>
+					<scope>compile</scope>
+				</dependency>
+				<dependency>
+					<groupId>org.flywaydb</groupId>
+					<artifactId>flyway-database-postgresql</artifactId>
+					<scope>compile</scope>
+				</dependency>
 				<dependency>
 					<groupId>io.zonky.test</groupId>
 					<artifactId>embedded-postgres</artifactId>
 					<version>2.0.7</version>
+					<scope>compile</scope>
 				</dependency>
 			</dependencies>
 		</profile>
