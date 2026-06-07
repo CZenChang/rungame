@@ -2,13 +2,13 @@
 
 ## 技術棧
 
-| 元件 | 版本 | 說明 |
-|------|------|------|
-| Spring Boot | 4.0.0 | AOT + Native 支援 |
-| Java | 25 | GraalVM Community Edition |
-| GraalVM Native Plugin | 0.10.6 | native-maven-plugin |
+| 元件 | 版本       | 說明 |
+|------|----------|------|
+| Spring Boot | 4.0.6    | AOT + Native 支援 |
+| Java | 25       | GraalVM Community Edition |
+| GraalVM Native Plugin | 0.10.6   | native-maven-plugin |
 | PostgreSQL Driver | (BOM 管理) | 最佳 Native 相容性 |
-| Hibernate | 6.x | JPA 實作 |
+| Hibernate | 6.x      | JPA 實作 |
 | Flyway | (BOM 管理) | DB Migration |
 | Testcontainers | (BOM 管理) | 整合測試 |
 
