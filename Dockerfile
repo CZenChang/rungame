@@ -1,0 +1,37 @@
+# ─── Stage 1: Build native binary ────────────────────────────────────────────
+FROM ghcr.io/graalvm/native-image-community:25 AS builder
+
+WORKDIR /build
+
+# 安裝 Maven
+RUN microdnf install -y maven && microdnf clean all
+
+# 先複製 pom.xml，利用 Docker layer cache
+COPY pom.xml .
+RUN mvn dependency:go-offline -q
+
+# 複製源碼並編譯 native image
+COPY src ./src
+RUN mvn -Pnative -DskipTests native:compile-no-fork
+
+# ─── Stage 2: Minimal runtime image ──────────────────────────────────────────
+FROM debian:bookworm-slim
+
+WORKDIR /app
+
+# 只需要 CA certificates 和基本 libs
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# 從 builder 複製 native binary
+COPY --from=builder /build/target/demo .
+
+# 非 root user
+RUN useradd -r -u 1001 appuser && chown appuser:appuser /app/demo
+USER appuser
+
+EXPOSE 8080
+
+ENTRYPOINT ["./demo"]
