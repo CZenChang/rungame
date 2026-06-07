@@ -1,0 +1,16 @@
+spring:
+  jpa:
+    show-sql: true
+
+  flyway:
+    enabled: true
+
+local:
+  db:
+    port: 15432
+
+logging:
+  level:
+    com.dodognoman.rungame: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.orm.jdbc.bind: TRACE
