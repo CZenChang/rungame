@@ -16,8 +16,6 @@
 
 ## 快速開始
 
-### 前置需求
-
 | 方案 | 需求 |
 |------|------|
 | 方案一（Docker Compose） | Docker & Docker Compose |

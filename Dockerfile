@@ -10,7 +10,7 @@ RUN microdnf install -y maven && microdnf clean all
 COPY pom.xml .
 RUN mvn dependency:go-offline -q
 
-# 複製源碼並編譯 native image
+# 複製源碼並編譯 native image，docker 環境用-no-fork
 COPY src ./src
 RUN mvn -Pnative -DskipTests native:compile-no-fork
 
