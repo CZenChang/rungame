@@ -1,5 +1,6 @@
 package com.dodognoman.rungame.user;
 
+import com.dodognoman.rungame.common.dto.ApiResponse;
 import com.dodognoman.rungame.user.dto.AuthResponse;
 import com.dodognoman.rungame.user.dto.LoginRequest;
 import com.dodognoman.rungame.user.dto.RegisterRequest;
@@ -20,12 +21,12 @@ public class UserController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public AuthResponse register(@Valid @RequestBody RegisterRequest req, HttpServletRequest httpRequest) {
-        return userService.register(req, httpRequest.getRemoteAddr());
+    public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest req, HttpServletRequest httpRequest) {
+        return ApiResponse.ok(userService.register(req, httpRequest.getRemoteAddr()));
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest req, HttpServletRequest httpRequest) {
-        return userService.login(req, httpRequest.getRemoteAddr());
+    public ApiResponse<AuthResponse> login(@Valid @RequestBody LoginRequest req, HttpServletRequest httpRequest) {
+        return ApiResponse.ok(userService.login(req, httpRequest.getRemoteAddr()));
     }
 }

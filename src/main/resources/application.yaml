@@ -44,6 +44,13 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
+  # ─── Cache Configuration ────────────────────────────────────────────────
+  cache:
+    type: caffeine
+    cache-names: preventRepeat
+    caffeine:
+      spec: expireAfterWrite=2s,maximumSize=1000
+
   lifecycle:
     timeout-per-shutdown-phase: 10s
 

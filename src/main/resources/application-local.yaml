@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:${local.db.port:15432}/postgres
+    url: jdbc:postgresql://localhost:${local.db.port:5432}/postgres
     username: postgres
     password: ""
     hikari:

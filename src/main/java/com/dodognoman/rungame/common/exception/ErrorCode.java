@@ -22,7 +22,8 @@ public enum ErrorCode {
 
     // 通用系統類 (9000-9999)
     SYSTEM_ERROR(9001, "系統發生未知錯誤"),
-    RUNTIME_ERROR(9002, "系統執行異常");
+    RUNTIME_ERROR(9002, "系統執行異常"),
+    TOO_MANY_REQUESTS(9003, "請求過於頻繁，請稍後再試");
 
     private final int code;
     private final String message;

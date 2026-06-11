@@ -29,7 +29,7 @@ public class UserService {
     @Transactional()
     public AuthResponse register(RegisterRequest req, String clientIp) {
         if (userRepository.existsByUsername(req.username())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Username already taken");
+            return new AuthResponse(null, null,null, null,null,null);
         }
 
         User user = new User();

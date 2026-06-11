@@ -23,6 +23,7 @@
   - 使用 `ErrorCode` 列舉定義錯誤代碼（如 9001, 1001 等）。
   - `ApiResponse` 的 `error` 欄位回傳自定義錯誤代碼，`message` 隱藏具體 Exception 類型。
   - **TraceId 追蹤**: 透過 `TraceIdFilter` 為每個請求生成唯一的 `traceId`，並透過 MDC 整合進日誌與回應中，方便全域追蹤。
+- **防止重複提交 (Anti-Repeat Submission)**: 透過 `PreventRepeatFilter` 攔截 1 秒內的連續 POST/PUT/DELETE 請求。底層使用 Caffeine 快取（可擴展至 Redis），過期時間在 `application.yaml` 中配置。
 
 ## 常用指令 (Common Commands)
 - **啟動應用程式 (Local Profile):**
