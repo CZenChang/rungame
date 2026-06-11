@@ -3,6 +3,8 @@ package com.dodognoman.rungame.common.exception;
 import com.dodognoman.rungame.common.dto.ApiResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -13,21 +15,26 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.util.ContentCachingRequestWrapper;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionAdvice {
 
-
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionAdvice.class);
 
     /**
      * 處理 Spring 內建的 ResponseStatusException
      */
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<ApiResponse<Object>> handleResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
+        log.error("[ResponseStatusException] path: {}, body: {}, status: {}, reason: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getStatusCode(), ex.getReason(), ex);
+        
         ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
         if (ex.getStatusCode() == HttpStatus.UNAUTHORIZED) {
             errorCode = ErrorCode.AUTH_FAILED;
@@ -50,6 +57,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleAllExceptions(Exception ex, HttpServletRequest request) {
+        log.error("[Exception] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -64,15 +74,17 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.error("[MethodArgumentNotValidException] path: {}, body: {}, errors: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getBindingResult().getAllErrors(), ex);
+        
         Map<String, String> details = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) -> {
+        ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
             details.put(fieldName, errorMessage);
         });
 
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
-        // 這裡我們將驗證細節放入 data 中回傳
         ApiResponse<Map<String, String>> response = new ApiResponse<>(
             errorCode.getCode(),
             errorCode.getMessage(),
@@ -87,6 +99,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiResponse<Object>> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.error("[HttpMessageNotReadableException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.PARSE_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -101,6 +116,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(IOException.class)
     public ResponseEntity<ApiResponse<Object>> handleIOException(IOException ex, HttpServletRequest request) {
+        log.error("[IOException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.IO_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -115,6 +133,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
+        log.error("[DataIntegrityViolationException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.DATA_CONFLICT;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -129,6 +150,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ApiResponse<Object>> handleEntityNotFoundException(EntityNotFoundException ex, HttpServletRequest request) {
+        log.error("[EntityNotFoundException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.RESOURCE_NOT_FOUND;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -143,6 +167,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<ApiResponse<Object>> handleDataAccessException(DataAccessException ex, HttpServletRequest request) {
+        log.error("[DataAccessException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.DATABASE_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -157,6 +184,9 @@ public class GlobalExceptionAdvice {
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ApiResponse<Object>> handleRuntimeException(RuntimeException ex, HttpServletRequest request) {
+        log.error("[RuntimeException] path: {}, body: {}, message: {}", 
+                request.getRequestURI(), getRequestBody(request), ex.getMessage(), ex);
+        
         ErrorCode errorCode = ErrorCode.RUNTIME_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
@@ -164,5 +194,18 @@ public class GlobalExceptionAdvice {
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * 輔助方法：獲取請求 Body
+     */
+    private String getRequestBody(HttpServletRequest request) {
+        if (request instanceof ContentCachingRequestWrapper wrapper) {
+            byte[] buf = wrapper.getContentAsByteArray();
+            if (buf.length > 0) {
+                return new String(buf, StandardCharsets.UTF_8);
+            }
+        }
+        return "[empty or unreadable]";
     }
 }
