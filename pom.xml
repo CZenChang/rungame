@@ -121,14 +121,6 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- embedded-postgres — local 開發用；provided = 只供編譯，不打包進 native binary -->
-		<dependency>
-			<groupId>io.zonky.test</groupId>
-			<artifactId>embedded-postgres</artifactId>
-			<version>2.0.7</version>
-			<scope>provided</scope>
-		</dependency>
-
 		<!-- Testcontainers — PostgreSQL 整合測試 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -192,12 +184,6 @@
 				<dependency>
 					<groupId>org.flywaydb</groupId>
 					<artifactId>flyway-database-postgresql</artifactId>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>io.zonky.test</groupId>
-					<artifactId>embedded-postgres</artifactId>
-					<version>2.0.7</version>
 					<scope>compile</scope>
 				</dependency>
 			</dependencies>

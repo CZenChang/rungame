@@ -15,10 +15,6 @@ spring:
   flyway:
     enabled: true
 
-local:
-  db:
-    port: 15432
-
 logging:
   level:
     com.dodognoman.rungame: DEBUG

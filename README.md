@@ -21,8 +21,7 @@
 | 方案 | 需求 |
 |------|------|
 | 方案一（Docker Compose） | Docker & Docker Compose |
-| 方案二（Local Profile） | 無（embedded-postgres 自動啟動） |
-| 方案三 / 四（Native） | GraalVM Community 25+（含 `native-image`） |
+| 方案二 / 三（Native） | GraalVM Community 25+（含 `native-image`） |
 
 ---
 
@@ -47,35 +46,7 @@ mvnw.cmd spring-boot:run
 ```
 ---
 
-### 方案二：Local Profile（embedded-postgres，不需 Docker）
-
-適合**快速驗證 API、跑 smoke test**，不在乎資料是否保留。資料為 ephemeral（重啟後清空），Flyway 每次自動重建 schema。不建議作為主力開發環境。
-
-**1. 在 IntelliJ IDEA 設定 Run Configuration**
-
-- Active profiles 填入：`local`
-- ![img.png](img.png)
-- 右側 Maven 面板 → Profiles → 勾選 `local`
-
-**2. 或用指令啟動**
-
-```bash
-# Linux / macOS
-./mvnw spring-boot:run -Plocal -Dspring-boot.run.profiles=local
-
-# Windows
-mvnw.cmd spring-boot:run -Plocal -Dspring-boot.run.profiles=local
-```
-
-> **注意**：停止應用程式前若有 postgres process 殘留（port 15432），重新啟動前需先手動終止：
-> ```powershell
-> netstat -ano | findstr :15432
-> taskkill /PID <PID> /F
-> ```
-
----
-
-### 方案三：編譯 Native Binary
+### 方案二：Native Binary 編譯
 
 **Windows 額外需求**：GraalVM Native Image 需要 Visual Studio 2022 的 C++ 工具鏈。
 
@@ -96,7 +67,7 @@ mvnw.cmd -Pnative -DskipTests package
 ./target/rungame
 ```
 
-### 方案四：Native Binary + Docker 打包
+### 方案三：Native Binary + Docker 打包
 
 ```bash
 docker build -t rungame:native .
@@ -131,7 +102,7 @@ com.dodognoman.rungame
 │   └── JwtService.java              # JWT 產生 / 驗證
 │
 └── config/                          # 基礎設施配置
-    └── EmbeddedPostgresConfig.java  # local profile 用的 embedded PostgreSQL
+    └── JacksonConfig.java           # Jackson 全域配置
 ```
 
 ### Package 拆分原則
