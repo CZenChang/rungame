@@ -21,7 +21,7 @@
 	<properties>
 		<java.version>25</java.version>
 		<!-- 覆蓋 Spring Boot 4.x BOM 中尚未發布的版本 -->
-		<native-build-tools-plugin.version>0.10.6</native-build-tools-plugin.version>
+		<native-build-tools-plugin.version>1.1.1</native-build-tools-plugin.version>
 		<testcontainers.version>1.21.4</testcontainers.version>
 	</properties>
 
