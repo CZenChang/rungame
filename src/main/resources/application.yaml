@@ -1,6 +1,9 @@
 spring:
   application:
     name: rungame
+  threads:
+    virtual:
+      enabled: true
 
   # ─── PostgreSQL DataSource ───────────────────────────────────────────────
   datasource:
@@ -77,6 +80,9 @@ server:
   port: 8080
   servlet:
     context-path: /rungame
+  tomcat:
+    max-connections: 1000
+    accept-count: 100   #等待隊列的最大長度，超過後會拒絕新的連接
   shutdown: graceful
 
 # ─── JWT ──────────────────────────────────────────────────────────────────
