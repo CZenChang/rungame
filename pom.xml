@@ -16,12 +16,11 @@
 	<artifactId>rungame</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>rungame</name>
-	<description>Spring Boot 4.x + Java 25 + GraalVM Native + PostgreSQL</description>
+	<description>Spring Boot 4.x + Java 25 + PostgreSQL</description>
 
 	<properties>
 		<java.version>25</java.version>
-		<!-- 覆蓋 Spring Boot 4.x BOM 中尚未發布的版本 -->
-		<native-build-tools-plugin.version>1.1.1</native-build-tools-plugin.version>
+		<start-class>com.dodognoman.rungame.RungameApplication</start-class>
 		<testcontainers.version>1.21.4</testcontainers.version>
 	</properties>
 
@@ -77,16 +76,14 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 		</dependency>
 
-		<!-- Flyway — local 開發用；provided = 只供編譯，不打包進 native binary -->
+		<!-- Flyway — DB Migration -->
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-database-postgresql</artifactId>
-			<scope>provided</scope>
 		</dependency>
 
 		<!-- JWT -->
@@ -142,7 +139,6 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<!-- 產生 AOT 源碼，為 native 編譯做準備 -->
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -150,14 +146,6 @@
 						</exclude>
 					</excludes>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<!-- 必須：產生 AOT 處理後的 sources -->
-							<goal>process-aot</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>
@@ -169,73 +157,10 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-	<!-- ✅ Native Profile — 用 -Pnative 啟用 -->
+	<!-- Local Profile — 用 -Plocal 啟用，spring-boot:run 本地開發用 -->
 	<profiles>
-		<!-- ✅ Local Profile — 用 -Plocal 啟用，spring-boot:run 本地開發用 -->
 		<profile>
 			<id>local</id>
-			<dependencies>
-				<!-- 覆寫 provided → compile，讓 local runtime 可以實際使用 -->
-				<dependency>
-					<groupId>org.flywaydb</groupId>
-					<artifactId>flyway-core</artifactId>
-					<scope>compile</scope>
-				</dependency>
-				<dependency>
-					<groupId>org.flywaydb</groupId>
-					<artifactId>flyway-database-postgresql</artifactId>
-					<scope>compile</scope>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>native</id>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.graalvm.buildtools</groupId>
-						<artifactId>native-maven-plugin</artifactId>
-						<version>${native-build-tools-plugin.version}</version>
-						<extensions>true</extensions>
-						<configuration>
-							<imageName>${project.artifactId}</imageName>
-							<metadataRepository>
-								<!-- 自動使用 GraalVM Reachability Metadata Repository -->
-								<enabled>true</enabled>
-							</metadataRepository>
-							<buildArgs>
-								<!-- 優化啟動時間 -->
-								<buildArg>-O2</buildArg>
-								<!-- 減少 binary 大小 -->
-								<buildArg>--no-fallback</buildArg>
-								<!-- GC 策略：Serial GC 適合小服務 -->
-								<buildArg>--gc=serial</buildArg>
-								<!-- 開啟 HTTPS 支援 -->
-								<buildArg>--enable-url-protocols=https</buildArg>
-								<!-- 包含完整 stack trace -->
-								<buildArg>-H:+ReportExceptionStackTraces</buildArg>
-							</buildArgs>
-						</configuration>
-						<executions>
-							<execution>
-								<id>build-native</id>
-								<goals>
-									<goal>compile-no-fork</goal>
-								</goals>
-								<phase>package</phase>
-							</execution>
-							<execution>
-								<id>test-native</id>
-								<goals>
-									<goal>test</goal>
-								</goals>
-								<phase>test</phase>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
 		</profile>
 	</profiles>
 </project>

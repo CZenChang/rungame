@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 專案概覽
 
-`rungame` 是一個以 **Spring Boot 4.x + Java 25 + GraalVM Native + PostgreSQL** 為核心技術棧的後端服務，使用 Maven 管理依賴。
+`rungame` 是一個以 **Spring Boot 4.x + Java 25 + PostgreSQL** 為核心技術棧的後端服務，使用 Maven 管理依賴。
 
 - **Group ID**：`com.dodognoman`
 - **主程式進入點**：`src/main/java/com/dodognoman/rungame/RungameApplication.java`
@@ -29,12 +29,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # 打包（JVM jar）
 ./mvnw package
-
-# 打包為 GraalVM Native 可執行檔（需安裝 GraalVM JDK 25）
-./mvnw -Pnative package
-
-# 以 Native 模式執行測試
-./mvnw -Pnative test
 ```
 
 Windows 環境請將 `./mvnw` 替換為 `mvnw.cmd`。
@@ -54,18 +48,6 @@ Windows 環境請將 `./mvnw` 替換為 `mvnw.cmd`。
 | 輸入驗證 | `spring-boot-starter-validation` |
 | 健康檢查 / 指標 | `spring-boot-starter-actuator` |
 | 整合測試 DB | Testcontainers（`org.testcontainers:postgresql`） |
-
-### GraalVM Native Profile
-
-啟用 `-Pnative` 時，`native-maven-plugin` 會在 `package` 階段呼叫 GraalVM 將應用程式編譯為原生二進位檔，主要設定：
-
-- 輸出檔名：`rungame`
-- GC 策略：Serial GC（適合輕量服務）
-- 優化等級：`-O2`
-- 無 fallback 模式（`--no-fallback`）
-- 自動引用 GraalVM Reachability Metadata Repository
-
-新增反射、序列化相關元件時，需確認是否已涵蓋於 Metadata Repository，否則要手動補充 `reflect-config.json`。
 
 ### 資料庫遷移（Flyway）
 
@@ -92,4 +74,3 @@ Windows 環境請將 `./mvnw` 替換為 `mvnw.cmd`。
 - **Spring Boot 版本為 4.0.6**，部分 API 與 3.x 有差異，查閱文件時請確認版本。
 - **Java 版本為 25**，可使用最新語言特性（Records、Pattern Matching、Virtual Threads 等）。
 - 整合測試依賴 Docker（Testcontainers），執行測試前請確保 Docker 服務已啟動。
-- AOT（Ahead-of-Time）處理由 `spring-boot-maven-plugin` 的 `process-aot` goal 負責，Native 編譯前會自動執行。

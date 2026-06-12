@@ -1,13 +1,12 @@
-# Spring Boot 4.x · Java 25 · GraalVM Native · PostgreSQL
+# Spring Boot 4.x · Java 25 · PostgreSQL
 
 ## 技術棧
 
 | 元件 | 版本       | 說明 |
 |------|----------|------|
-| Spring Boot | 4.0.6    | AOT + Native 支援 |
-| Java | 25       | GraalVM Community Edition |
-| GraalVM Native Plugin | 0.10.6   | native-maven-plugin |
-| PostgreSQL Driver | (BOM 管理) | 最佳 Native 相容性 |
+| Spring Boot | 4.0.6    | AOT 支援 |
+| Java | 25       | |
+| PostgreSQL Driver | (BOM 管理) | |
 | Hibernate | 6.x      | JPA 實作 |
 | Flyway | (BOM 管理) | DB Migration |
 | Testcontainers | (BOM 管理) | 整合測試 |
@@ -18,14 +17,14 @@
 
 ### 前置需求
 
-| 方案 | 需求 |
-|------|------|
-| 方案一（Docker Compose） | Docker & Docker Compose |
-| 方案二 / 三（Native） | GraalVM Community 25+（含 `native-image`） |
+| 需求 |
+|JDK 25，Docker|
+|------|
+| Docker & Docker Compose |
 
 ---
 
-### 方案一：Docker Compose + 外部 PostgreSQL（推薦）
+### Docker Compose + 外部 PostgreSQL
 
 適合**主力本地開發**使用，資料持久化，環境最接近生產。
 
@@ -43,37 +42,6 @@ docker compose up -d
 
 # Windows
 mvnw.cmd spring-boot:run
-```
----
-
-### 方案二：Native Binary 編譯
-
-**Windows 額外需求**：GraalVM Native Image 需要 Visual Studio 2022 的 C++ 工具鏈。
-
-1. 安裝 [Visual Studio 2022](https://visualstudio.microsoft.com/downloads/)（Community 版即可）
-2. 安裝時勾選 `Desktop development with C++` 工作負載
-3. **必須在 x64 Native Tools Command Prompt for VS 2022 裡執行**（開始選單搜尋），不能用一般 PowerShell
-
-```cmd
-# Windows（在 x64 Native Tools Command Prompt 執行）
-mvnw.cmd -Pnative -DskipTests package
-
-# Linux / macOS
-./mvnw -Pnative -DskipTests package
-```
-
-```bash
-# 執行 native binary（啟動時間 < 100ms）
-./target/rungame
-```
-
-### 方案三：Native Binary + Docker 打包
-
-```bash
-docker build -t rungame:native .
-docker run -p 8080:8080 \
-  -e DB_HOST=host.docker.internal \
-  rungame:native
 ```
 
 ---
@@ -121,12 +89,11 @@ com.dodognoman.rungame
 
 ## 為什麼選 PostgreSQL？
 
-在 Spring Boot 4.x + Java 25 + GraalVM Native 這個組合下，PostgreSQL 是**支援度最高**的選擇：
+在 Spring Boot 4.x + Java 25 這個組合下，PostgreSQL 是**支援度最高**的選擇：
 
-1. **pgjdbc 官方維護** GraalVM reachability metadata（`org.postgresql:postgresql` 已內建）
-2. Hibernate 6.x 對 PostgreSQL Dialect 的 AOT 處理最完整
-3. Flyway 的 `flyway-database-postgresql` 模組原生支援
-4. 相較 MySQL/MariaDB，Native 編譯時反射配置缺失問題最少
+1. Hibernate 6.x 對 PostgreSQL Dialect 的支援最完整
+2. Flyway 的 `flyway-database-postgresql` 模組原生支援
+3. 生態系成熟，社群資源豐富
 
 ---
 
@@ -148,13 +115,3 @@ GET    /actuator/metrics          指標
 | `DB_NAME` | `demo` | 資料庫名稱 |
 | `DB_USER` | `postgres` | 使用者名稱 |
 | `DB_PASS` | `postgres` | 密碼 |
-
----
-
-## Native Image 注意事項
-
-1. **AOT 處理**：`spring-boot:process-aot` 會在 compile phase 自動執行
-2. **反射 Hints**：額外的反射需求在 `NativeHintsConfig` 中註冊
-3. **GraalVM Metadata Repository**：`pom.xml` 已啟用，自動拉取第三方 metadata
-4. **禁用 OSIV**：`open-in-view: false` 避免 native proxy 問題
-5. **HikariCP**：`register-mbeans: false` 關閉 JMX（native 不支援）

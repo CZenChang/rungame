@@ -3,11 +3,10 @@
 本文件定義了 `rungame` 專案的開發規範、架構決策與工作流程，供 Gemini CLI 參考。
 
 ## 技術棧 (Technology Stack)
-- **Framework:** Spring Boot 4.0.6 (支援 AOT + Native)
-- **Language:** Java 25 (GraalVM Community Edition)
+- **Framework:** Spring Boot 4.0.6
+- **Language:** Java 25
 - **Database:** PostgreSQL (透過 Flyway 進行 Migration)
 - **Build Tool:** Maven (使用 `mvnw` wrapper)
-- **Native:** GraalVM Native Image (native-maven-plugin 0.10.6)
 - **Testing:** Testcontainers (PostgreSQL)
 
 ## 開發規範 (Conventions)
@@ -30,10 +29,7 @@
   `.\mvnw.cmd spring-boot:run -Plocal -Dspring-boot.run.profiles=local`
 - **執行測試:**
   `.\mvnw.cmd test`
-- **編譯 Native Binary:**
-  `.\mvnw.cmd -Pnative -DskipTests package`
 
 ## 注意事項 (Notes)
 - 整合測試需要 Docker 環境 (Testcontainers)。
-- 進行 Native 編譯時，Windows 需要 Visual Studio 2022 的 C++ 工具鏈，並在 x64 Native Tools Command Prompt 下執行。
 - `application.yaml` 管理基本設定，敏感資訊應使用環境變數。

@@ -16,12 +16,13 @@ spring:
       connection-timeout: 20000
       idle-timeout: 300000
       max-lifetime: 1200000
-      # ✅ 重要：GraalVM native 下需關閉 JMX
+      # 已棄用native重要：GraalVM native 下需關閉 JMX
+      # mbean 是觀測套件，actuator可取代
       register-mbeans: false
 
   # ─── JPA / Hibernate ─────────────────────────────────────────────────────
   jpa:
-    open-in-view: false          # 關閉 OSIV，避免 native 下 proxy 問題
+    open-in-view: false          # 關閉 OSIV，避免 native 下 proxy 問題，true 連線占用直到整個response 結束，false db 查詢用完連線就釋放
     show-sql: false
     hibernate:
       ddl-auto: validate         # 不要自動 create table
@@ -33,7 +34,7 @@ spring:
           batch_size: 50
           order_inserts: true
           order_updates: true
-        # ✅ 關閉 enhanced proxies，native image 友善
+        #  enhanced proxies，native image 友善，使用反射提升效能，但占用記憶體
         bytecode:
           use_reflection_optimizer: false
         jakarta:

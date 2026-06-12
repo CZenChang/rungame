@@ -12,7 +12,7 @@ RUN mvn dependency:go-offline -q
 
 # 複製源碼並編譯 native image
 COPY src ./src
-RUN mvn -Pnative -DskipTests native:compile-no-fork
+RUN mvn -Pnative -DskipTests clean package
 
 # ─── Stage 2: Minimal runtime image ──────────────────────────────────────────
 FROM debian:bookworm-slim
