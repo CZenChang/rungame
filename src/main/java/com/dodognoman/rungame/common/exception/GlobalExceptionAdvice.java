@@ -87,7 +87,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
         ApiResponse<Map<String, String>> response = new ApiResponse<>(
             errorCode.getCode(),
-            errorCode.getMessage(),
+            "參數驗證失敗",
             details,
             request.getRequestURI()
         );
@@ -122,7 +122,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.IO_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
-            errorCode.getMessage(),
+            "",
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -139,7 +139,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.DATA_CONFLICT;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
-            errorCode.getMessage(),
+            "",
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -156,7 +156,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.RESOURCE_NOT_FOUND;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
-            ex.getMessage() != null ? ex.getMessage() : errorCode.getMessage(),
+            "",
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -173,7 +173,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.DATABASE_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
-            errorCode.getMessage(),
+            "",
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -190,7 +190,7 @@ public class GlobalExceptionAdvice {
         ErrorCode errorCode = ErrorCode.RUNTIME_ERROR;
         ApiResponse<Object> response = ApiResponse.error(
             errorCode.getCode(),
-            ex.getMessage() != null ? ex.getMessage() : errorCode.getMessage(),
+            "",
             request.getRequestURI()
         );
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);

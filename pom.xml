@@ -77,6 +77,11 @@
 		</dependency>
 
 		<!-- Flyway — DB Migration -->
+		<!-- Spring Boot 4 將自動配置拆成獨立模組，需引入此模組才會在啟動時自動執行 migration -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-flyway</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>

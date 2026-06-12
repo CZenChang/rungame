@@ -43,6 +43,23 @@ docker compose up -d
 # Windows
 mvnw.cmd spring-boot:run
 ```
+or docker
+```bash
+./mvnw.cmd package -DskipTests
+
+docker build -t rungame:latest .
+
+docker run \
+  -p 8080:8080 \
+#  --memory=512m \
+  rungame:latest
+  
+
+```
+or 一次啟動 DB & app
+```bash
+docker compose up --build
+```
 
 ---
 

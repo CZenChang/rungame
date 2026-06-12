@@ -1,12 +1,4 @@
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:${local.db.port:5432}/postgres
-    username: postgres
-    password: ""
-    hikari:
-      maximum-pool-size: 5
-      minimum-idle: 1
-
   jpa:
     show-sql: true
     hibernate:
