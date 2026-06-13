@@ -17,6 +17,7 @@ services:
     restart: unless-stopped
 
   rungame:
+    image: rungame:latest
     build: .
     ports:
       - "8080:8080"
