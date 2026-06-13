@@ -36,6 +36,7 @@ class UserServiceTest {
 
     @BeforeEach
     void setUp() {
+        // stub 若未被呼叫會噴 noNecusuryException, 使用lenient() 關閉
         lenient().when(jwtService.generateAccessToken(any())).thenReturn("access.jwt.token");
         lenient().when(jwtService.generateRefreshToken(any())).thenReturn("refresh.jwt.token");
         lenient().when(jwtService.accessTokenExpiresAt()).thenReturn(OffsetDateTime.now().plusHours(24));
