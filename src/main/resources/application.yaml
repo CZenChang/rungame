@@ -63,10 +63,13 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics
+        include: health,metrics
   endpoint:
     health:
-      show-details: always
+#      probes:
+#        enabled: true #k8s 探針
+      show-details: never
+
 
 # ─── Logging ──────────────────────────────────────────────────────────────
 logging:
@@ -85,6 +88,10 @@ server:
     max-connections: 1000
     accept-count: 100   #等待隊列的最大長度，超過後會拒絕新的連接
   shutdown: graceful
+
+# ─── Actuator Auth（ECDSA 公鑰驗簽）─────────────────────────────────────────
+actuator:
+  public-key: ${ACTUATOR_PUBLIC_KEY:REPLACE_ME_RUN_ActuatorKeyGen}
 
 # ─── JWT ──────────────────────────────────────────────────────────────────
 jwt:
