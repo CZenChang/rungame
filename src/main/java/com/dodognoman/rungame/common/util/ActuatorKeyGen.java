@@ -8,7 +8,7 @@ import java.util.Base64;
  * 一次性工具：產生 ECDSA P-256 key pair。
  *
  * 執行方式（在 rungame 專案根目錄）：
- *   ./mvnw.cmd exec:java -Dexec.mainClass=com.dodognoman.rungame.common.util.ActuatorKeyGen -Dexec.classpathScope=compile
+ *   ./mvnw.cmd exec:java "-Dexec.mainClass=com.dodognoman.rungame.common.util.ActuatorKeyGen" "-Dexec.classpathScope=compile"
  *
  * 輸出：
  *   PUBLIC KEY  → 貼到 application.yaml 的 actuator.public-key
