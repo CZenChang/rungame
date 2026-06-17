@@ -40,10 +40,17 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
 
     private final PublicKey publicKey;
 
-    public ActuatorAuthFilter(@Value("${actuator.public-key}") String publicKeyBase64) throws Exception {
-        byte[] keyBytes = Base64.getDecoder().decode(publicKeyBase64);
-        KeyFactory kf = KeyFactory.getInstance("EC");
-        this.publicKey = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
+    public ActuatorAuthFilter(@Value("${actuator.public-key}") String publicKeyBase64) {
+        PublicKey loaded = null;
+        try {
+            byte[] keyBytes = Base64.getDecoder().decode(publicKeyBase64);
+            KeyFactory kf = KeyFactory.getInstance("EC");
+            loaded = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
+        } catch (Exception e) {
+            logger.error("無法載入 actuator.public-key（請執行 ActuatorKeyGen 並設定 ACTUATOR_PUBLIC_KEY）；"
+                    + "所有 /actuator/** 請求將一律被拒絕", e);
+        }
+        this.publicKey = loaded;
     }
 
     @Override
@@ -55,6 +62,13 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+        // 公鑰未載入 → 此保護功能未正確配置，一律拒絕（fail-closed），不放行任何 actuator 請求
+        if (publicKey == null) {
+            logger.warn("拒絕 /actuator 請求：actuator.public-key 未載入");
+            response.sendError(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Actuator auth not configured");
+            return;
+        }
+
         String timestamp = request.getHeader(HEADER_TIMESTAMP);
         String signatureB64 = request.getHeader(HEADER_SIGNATURE);
 

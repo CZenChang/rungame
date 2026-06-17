@@ -29,7 +29,7 @@ public class UserService {
     @Transactional()
     public AuthResponse register(RegisterRequest req, String clientIp) {
         if (userRepository.existsByUsername(req.username())) {
-            return new AuthResponse(null, null,null, null,null,null);
+            return new AuthResponse(null, null,null, null,null);
         }
 
         User user = new User();
@@ -65,7 +65,6 @@ public class UserService {
 
     private void issueTokens(User user) {
         user.setAccessToken(jwtService.generateAccessToken(user));
-        user.setRefreshToken(jwtService.generateRefreshToken(user));
         user.setTokenExpiresAt(jwtService.accessTokenExpiresAt());
     }
 
@@ -75,7 +74,6 @@ public class UserService {
                 user.getUsername(),
                 user.getRole(),
                 user.getAccessToken(),
-                user.getRefreshToken(),
                 user.getTokenExpiresAt()
         );
     }

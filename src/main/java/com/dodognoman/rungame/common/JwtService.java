@@ -20,24 +20,17 @@ public class JwtService {
 
     private final SecretKey key;
     private final int accessTokenHours;
-    private final int refreshTokenDays;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.access-token-hours:24}") int accessTokenHours,
-            @Value("${jwt.refresh-token-days:30}") int refreshTokenDays
+            @Value("${jwt.access-token-hours:24}") int accessTokenHours
     ) {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.accessTokenHours = accessTokenHours;
-        this.refreshTokenDays = refreshTokenDays;
     }
 
     public String generateAccessToken(User user) {
         return buildToken(user, accessTokenHours * 3600L, "access");
-    }
-
-    public String generateRefreshToken(User user) {
-        return buildToken(user, refreshTokenDays * 86400L, "refresh");
     }
 
     public OffsetDateTime accessTokenExpiresAt() {

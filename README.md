@@ -28,38 +28,18 @@
 
 適合**主力本地開發**使用，資料持久化，環境最接近生產。
 
-**1. 啟動 PostgreSQL**
+**1. docker up App And DB**
 
 ```bash
-docker compose up -d
-```
+./mvnw.cmd clean package -DskipTests
 
-**2. 啟動應用程式**
-
-```bash
-# Linux / macOS
-./mvnw spring-boot:run
-
-# Windows
-mvnw.cmd spring-boot:run
-```
-or docker
-```bash
-./mvnw.cmd package -DskipTests
-
-docker build -t rungame:latest .
-
-docker run \
-  -p 8080:8080 \
-#  --memory=512m \
-  rungame:latest
-  
-
-```
-or 一次啟動 DB & app
-```bash
 docker compose up --build
+
 ```
+**2. Springboot run**
+可在intellij config 設定profile 參數
+但須啟動DB
+![img.png](img.png)
 
 ---
 

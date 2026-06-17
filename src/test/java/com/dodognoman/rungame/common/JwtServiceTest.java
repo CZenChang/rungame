@@ -19,7 +19,7 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService(SECRET, 24, 30);
+        jwtService = new JwtService(SECRET, 24);
 
         user = new User();
         user.setUsername("alice");
@@ -36,13 +36,6 @@ class JwtServiceTest {
         assertThat(claims.get("type")).isEqualTo("access");
     }
 
-    @Test
-    void generateRefreshToken_typeIsRefresh() {
-        String token = jwtService.generateRefreshToken(user);
-
-        Claims claims = jwtService.parseClaims(token);
-        assertThat(claims.get("type")).isEqualTo("refresh");
-    }
 
     @Test
     void generateAccessToken_expiresInConfiguredHours() {
@@ -62,11 +55,5 @@ class JwtServiceTest {
         assertThat(expiresAt).isCloseTo(expected, within(1, MINUTES));
     }
 
-    @Test
-    void accessAndRefreshTokens_areDifferent() {
-        String access = jwtService.generateAccessToken(user);
-        String refresh = jwtService.generateRefreshToken(user);
 
-        assertThat(access).isNotEqualTo(refresh);
-    }
 }

@@ -2,10 +2,11 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: validate
 
   flyway:
     enabled: true
+    baseline-on-migrate: true
 
 logging:
   level:

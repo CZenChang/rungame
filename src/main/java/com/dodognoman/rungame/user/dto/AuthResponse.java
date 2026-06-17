@@ -7,6 +7,5 @@ public record AuthResponse(
         String username,
         String role,
         String accessToken,
-        String refreshToken,
         OffsetDateTime tokenExpiresAt
 ) {}

@@ -38,7 +38,6 @@ class UserServiceTest {
     void setUp() {
         // stub 若未被呼叫會噴 noNecusuryException, 使用lenient() 關閉
         lenient().when(jwtService.generateAccessToken(any())).thenReturn("access.jwt.token");
-        lenient().when(jwtService.generateRefreshToken(any())).thenReturn("refresh.jwt.token");
         lenient().when(jwtService.accessTokenExpiresAt()).thenReturn(OffsetDateTime.now().plusHours(24));
     }
 
@@ -53,19 +52,21 @@ class UserServiceTest {
 
         assertThat(resp.username()).isEqualTo("alice");
         assertThat(resp.accessToken()).isEqualTo("access.jwt.token");
-        assertThat(resp.refreshToken()).isEqualTo("refresh.jwt.token");
         verify(userRepository).save(any(User.class));
     }
 
     @Test
-    void register_duplicateUsername_throwsConflict() {
+    void register_duplicateUsername_respNullValue() {
         when(userRepository.existsByUsername("alice")).thenReturn(true);
 
-        assertThatThrownBy(() ->
-                userService.register(new RegisterRequest("alice", "password123"), CLIENT_IP))
-                .isInstanceOf(ResponseStatusException.class)
-                .extracting(e -> ((ResponseStatusException) e).getStatusCode())
-                .isEqualTo(CONFLICT);
+        AuthResponse resp = userService.register(new RegisterRequest("alice", "password123"), CLIENT_IP);
+
+        assertThat(resp).isNotNull();
+        assertThat(resp.userId()).isNull();
+        assertThat(resp.username()).isNull();
+        assertThat(resp.role()).isNull();
+        assertThat(resp.accessToken()).isNull();
+        assertThat(resp.tokenExpiresAt()).isNull();
 
         verify(userRepository, never()).save(any());
     }

@@ -97,4 +97,3 @@ actuator:
 jwt:
   secret: ${JWT_SECRET:change-me-in-production-must-be-at-least-32-chars!!}
   access-token-hours: 24
-  refresh-token-days: 30
