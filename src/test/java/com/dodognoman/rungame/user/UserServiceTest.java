@@ -1,6 +1,6 @@
 package com.dodognoman.rungame.user;
 
-import com.dodognoman.rungame.common.JwtService;
+import com.dodognoman.rungame.authjwt.JwtService;
 import com.dodognoman.rungame.user.dto.AuthResponse;
 import com.dodognoman.rungame.user.dto.LoginRequest;
 import com.dodognoman.rungame.user.dto.RegisterRequest;
