@@ -1,5 +1,6 @@
 package com.dodognoman.rungame.score;
 
+import com.dodognoman.rungame.authjwt.PassJwt;
 import com.dodognoman.rungame.common.dto.ApiResponse;
 import com.dodognoman.rungame.score.dto.LeaderboardEntry;
 import com.dodognoman.rungame.score.dto.UpdateScoreRequest;
@@ -34,6 +35,7 @@ public class ScoreController {
 
     /** 排行榜前十名。 */
     @GetMapping("/leaderboard")
+    @PassJwt
     public ApiResponse<List<LeaderboardEntry>> leaderboard() {
         return ApiResponse.ok(scoreService.leaderboard());
     }
