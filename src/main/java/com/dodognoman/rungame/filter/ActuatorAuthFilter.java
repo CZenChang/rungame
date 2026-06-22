@@ -1,4 +1,4 @@
-package com.dodognoman.rungame.common.filter;
+package com.dodognoman.rungame.filter;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
