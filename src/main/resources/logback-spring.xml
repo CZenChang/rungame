@@ -16,15 +16,31 @@
         </root>
     </springProfile>
 
-    <!-- GCP：輸出 Cloud Logging 結構化 JSON（StackdriverJsonLayout，含 trace/span 關聯） -->
+    <!-- GCP：輸出 Cloud Logging 結構化 JSON（StackdriverJsonLayout，含 trace/span 關聯）
+         直接寫到專屬檔案，不走 stdout/journald，避免 syslog 前綴把整行包成純文字導致 GCP 無法解析 JSON。
+         由 Ops Agent 以 files 接收器 + parse_json 收取此檔。 -->
     <springProfile name="gcp">
-        <include resource="com/google/cloud/spring/logging/logback-json-appender.xml"/>
+        <property name="projectId" value="${projectId:-${SPRING_CLOUD_GCP_LOGGING_PROJECT_ID:-}}"/>
+        <property name="LOG_DIR" value="${LOG_DIR:-/var/log/rungame}"/>
+
+        <appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_DIR}/app.json</file>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_DIR}/app-%d{yyyy-MM-dd}.json</fileNamePattern>
+                <maxHistory>30</maxHistory>
+            </rollingPolicy>
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="com.google.cloud.spring.logging.StackdriverJsonLayout">
+                    <projectId>${projectId}</projectId>
+                </layout>
+            </encoder>
+        </appender>
 
         <logger name="FRONTEND" level="INFO" additivity="false">
-            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="JSON_FILE"/>
         </logger>
         <root level="INFO">
-            <appender-ref ref="CONSOLE_JSON"/>
+            <appender-ref ref="JSON_FILE"/>
         </root>
     </springProfile>
 </configuration>
