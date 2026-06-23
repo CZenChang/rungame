@@ -17,8 +17,7 @@
 
 ### 前置需求
 
-| 需求 |
-|JDK 25，Docker|
+| 需求 |JDK 25，Docker|
 |------|
 | Docker & Docker Compose |
 
@@ -45,42 +44,67 @@ docker compose up --build
 
 ## 專案 Package 結構
 
-以**業務領域**為主軸拆分 package，共用工具集中在 `common`，基礎設施配置放在 `config`。
+以**功能**為主軸拆分 package，一個功能一個頂層 package。這裡的「功能」不限於業務功能，也包含系統功能：
+
+- **業務功能**：例如 `user/`（使用者）、`score/`（分數）。
+- **系統功能**：例如 `authjwt/`（JWT 驗證）、`filter/`（共用 Filter）。
+
+好處是**找東西時依「功能」直覺定位**：要改 JWT 就看 `authjwt/`、要改分數就看 `score/`，相關的 Controller / Service / Entity 都集中在同一個 package 內，瀏覽與閱讀都直觀，不需要在 `controllers/`、`services/`、`repositories/` 之間來回跳。
+
+> 下方僅為**示意**，列出主要 package 與代表性類別，並非完整檔案清單。
 
 ```
 com.dodognoman.rungame
 │
 ├── RungameApplication.java          # 啟動入口
 │
-├── user/                            # 業務領域：使用者
-│   ├── UserController.java          # REST 端點
-│   ├── UserService.java             # 業務邏輯
-│   ├── dto/                         # 資料傳輸物件（進出 API 的 payload）
-│   │   ├── RegisterRequest.java
-│   │   ├── LoginRequest.java
-│   │   └── AuthResponse.java
-│   └── repo/                        # 資料存取層
-│       ├── User.java                # JPA Entity
-│       └── UserRepository.java      # Spring Data Repository
+├── user/                            # 業務功能：使用者（註冊 / 登入）
+│   ├── UserController.java          #   REST 端點
+│   ├── UserService.java             #   業務邏輯
+│   ├── dto/                         #   進出 API 的 payload（RegisterRequest…）
+│   └── repo/                        #   JPA Entity + Repository（User…）
 │
-├── common/                          # 跨領域共用元件
-│   └── JwtService.java              # JWT 產生 / 驗證
+├── score/                           # 業務功能：分數（更新 / 查詢 / 排行榜）
+│   ├── ScoreController.java
+│   ├── ScoreService.java
+│   ├── dto/                         #   UpdateScoreRequest、LeaderboardEntry…
+│   └── repo/                        #   Score、ScoreRepository
 │
-└── config/                          # 基礎設施配置
-    └── JacksonConfig.java           # Jackson 全域配置
+├── authjwt/                         # 系統功能：JWT 驗證
+│   ├── JwtService.java              #   token 產生 / 驗證
+│   ├── AuthInterceptor.java         #   攔截需驗證的請求
+│   └── PassJwt.java                 #   標註免驗證端點的 annotation
+│
+├── frontendlog/                     # 系統功能：前端日誌落地
+│   └── FrontendLogController.java
+│
+├── filter/                          # 系統功能：跨請求 Filter
+│   ├── TraceIdFilter.java           #   產生 traceId 寫入 MDC
+│   ├── PreventRepeatFilter.java     #   防短時間重複請求（429）
+│   └── ActuatorAuthFilter.java      #   /actuator 簽章驗證
+│
+├── common/                          # 跨功能共用元件
+│   ├── BaseEntity.java              #   共用 Entity 基底
+│   ├── dto/ApiResponse.java         #   統一回應結構
+│   ├── exception/                   #   ErrorCode、GlobalExceptionAdvice
+│   └── util/ActuatorKeyGen.java     #   一次性金鑰產生工具
+│
+└── config/                          # 基礎設施配置（@Configuration）
+    ├── JacksonConfig.java           #   Jackson 全域配置
+    └── WebMvcConfig.java            #   攔截器 / MVC 註冊
 ```
 
 ### Package 拆分原則
 
 | Package | 放什麼 |
 |---------|--------|
-| `{domain}/` | Controller、Service（同一業務領域的進入點與邏輯） |
-| `{domain}/dto/` | Request / Response 物件，只做資料搬運，不含邏輯 |
-| `{domain}/repo/` | JPA Entity 與 Repository，隱藏資料存取細節 |
-| `common/` | 跨多個領域共用的服務或工具（JWT、加密、通用例外處理等） |
+| `{功能}/` | 該功能的進入點與邏輯（Controller、Service） |
+| `{功能}/dto/` | Request / Response 物件，只做資料搬運，不含邏輯 |
+| `{功能}/repo/` | JPA Entity 與 Repository，隱藏資料存取細節 |
+| `common/` | 跨多個功能共用的服務、工具、回應結構與例外處理 |
 | `config/` | Spring `@Configuration` 類，負責 Bean 宣告與環境初始化 |
 
-新增業務功能時，以**領域名稱**建立新的頂層 package（例如 `game/`、`leaderboard/`），各自維護自己的 Controller / Service / dto / repo，避免跨領域直接相互依賴。
+新增功能時，以**功能名稱**建立新的頂層 package（業務如 `game/`、系統如 `audit/`），各自維護自己需要的 Controller / Service / dto / repo，避免跨功能直接相互依賴。
 
 ---
 
@@ -109,6 +133,38 @@ GET    /actuator/metrics          指標
 |------|--------|------|
 | `DB_HOST` | `localhost` | PostgreSQL 主機 |
 | `DB_PORT` | `5432` | PostgreSQL 埠號 |
-| `DB_NAME` | `demo` | 資料庫名稱 |
+| `DB_NAME` | `rungame` | 資料庫名稱 |
 | `DB_USER` | `postgres` | 使用者名稱 |
 | `DB_PASS` | `postgres` | 密碼 |
+| `JWT_SECRET` | `change-me-in-production-...` | JWT 簽章密鑰，正式環境**務必覆蓋**，至少 32 字元 |
+| `ACTUATOR_PUBLIC_KEY` | （無，未設定時拒絕所有 actuator 請求） | actuator 驗簽用 ECDSA P-256 公鑰（Base64），見下方說明 |
+
+---
+
+## Actuator 端點保護
+
+`/actuator/**` 不是用帳密保護，而是**ECDSA 簽章驗證**：呼叫端用私鑰對 timestamp 簽章，Server 用公鑰驗簽。即使封包被攔截，攻擊者沒有私鑰也無法偽造新請求。
+
+由 [`ActuatorAuthFilter`](src/main/java/com/dodognoman/rungame/filter/ActuatorAuthFilter.java) 實作，採 **fail-closed**：若 `ACTUATOR_PUBLIC_KEY` 未設定或載入失敗，所有 actuator 請求一律被拒絕。
+
+### 1. 產生金鑰對（ActuatorKeyGen）
+
+用一次性工具 [`ActuatorKeyGen`](src/main/java/com/dodognoman/rungame/common/util/ActuatorKeyGen.java) 產生 ECDSA P-256 金鑰對：
+
+```bash
+./mvnw.cmd exec:java "-Dexec.mainClass=com.dodognoman.rungame.common.util.ActuatorKeyGen" "-Dexec.classpathScope=compile"
+```
+
+輸出兩把金鑰：
+
+- **PUBLIC KEY** → 設定到 `ACTUATOR_PUBLIC_KEY`（或 `application.yaml` 的 `actuator.public-key`）。
+- **PRIVATE KEY** → 交給呼叫端 App 保管，**絕對不要 commit / 不要傳送**。
+
+### 2. 呼叫時帶上簽章 Header
+
+| Header | 內容 |
+|--------|------|
+| `X-Timestamp` | 毫秒級 Unix epoch（`System.currentTimeMillis()`） |
+| `X-Signature` | `Base64( ECDSA_SHA256_sign(timestamp 字串, 私鑰) )` |
+
+timestamp 與當前時間誤差超過約 10 秒會被視為過期（防重放）。

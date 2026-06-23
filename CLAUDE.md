@@ -66,9 +66,7 @@ Windows 環境請將 `./mvnw` 替換為 `mvnw.cmd`。
 | `reads/db/schema.md` | 資料表欄位定義與說明 |
 | `reads/db/erd.md` | 資料表關聯與 ER 圖 |
 | `reads/db/decisions.md` | 資料庫設計決策紀錄 |
-| `reads/api/users.md` | Users API（註冊 / 登入） |
-| `reads/api/scores.md` | Scores API（更新 / 查詢分數、排行榜） |
-| `reads/api/frontend-log.md` | 前端日誌上報 API |
+| `reads/api/api.md` | API 總文件（ApiResponse 結構、Token 說明、Users / Scores / Frontend Log） |
 
 ---
 
