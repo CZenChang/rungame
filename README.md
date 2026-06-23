@@ -168,3 +168,45 @@ GET    /actuator/metrics          指標
 | `X-Signature` | `Base64( ECDSA_SHA256_sign(timestamp 字串, 私鑰) )` |
 
 timestamp 與當前時間誤差超過約 10 秒會被視為過期（防重放）。
+
+---
+
+## 日誌（Logging）
+
+日誌格式由 [`logback-spring.xml`](src/main/resources/logback-spring.xml) 依 **Spring profile** 切換，所有 log 皆帶請求追蹤碼 `traceId`（由 [`TraceIdFilter`](src/main/java/com/dodognoman/rungame/filter/TraceIdFilter.java) 在每個請求寫入 MDC）。
+
+| Profile | 輸出格式 | 用途 |
+|---------|---------|------|
+| `local` / `default` | 彩色純文字（含 `[traceId]`） | 本地開發，人讀友善 |
+| `gcp` | Cloud Logging 結構化 JSON | 部署到 GCP，含 trace/span 關聯 |
+
+> `traceId` 只在 **HTTP 請求執行緒**中有值；啟動階段或背景執行緒的 log 會是空的，屬正常現象。
+
+### 本地開發
+
+不帶 profile 即可（吃 `default`），console 為彩色文字：
+
+```bash
+./mvnw.cmd spring-boot:run
+```
+
+### 部署到 GCP（Cloud Logging）
+
+透過 `spring-cloud-gcp-starter-logging`（BOM `spring-cloud-gcp-dependencies` 8.x，對應 Spring Boot 4），啟用 `gcp` profile 後輸出 Cloud Logging 結構化 JSON：
+
+```bash
+java -jar rungame.jar --spring.profiles.active=gcp
+# systemd 則設 Environment=SPRING_PROFILES_ACTIVE=gcp
+```
+
+- 在 Compute Engine 上 project id 由 metadata server 自動偵測，無需手動設定。
+- JSON 的 `StackdriverJsonLayout` 預設讀 MDC 的 `traceId` / `spanId`，自動與 `TraceIdFilter` 對齊。
+
+> **重要**：純 Compute Engine VM 上，光啟用 `gcp` profile 只是把 console 輸出改成正確 JSON 格式，**不會自動把日誌送進 Cloud Logging**。需在 VM 安裝 **Google Cloud Ops Agent**，由它收集並上傳：
+>
+> ```bash
+> curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent.sh
+> sudo bash add-google-cloud-ops-agent.sh --also-install
+> ```
+>
+> 未安裝 Ops Agent 時，日誌只會以 JSON 形式留在 `journalctl`，不會進 Cloud Logging 主控台。

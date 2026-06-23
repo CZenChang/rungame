@@ -1,13 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
-    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <logger name="FRONTEND" level="INFO" additivity="false">
-        <appender-ref ref="CONSOLE"/>
-    </logger>
+    <!-- 本地 / 預設：彩色純文字 console（人讀友善） -->
+    <springProfile name="local | default">
+        <property name="CONSOLE_LOG_PATTERN"
+                  value="%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level) %clr(%logger{36}){cyan} %clr([%X{traceId}]){magenta} - %msg%n"/>
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
-    <root level="INFO">
-        <appender-ref ref="CONSOLE"/>
-    </root>
+        <logger name="FRONTEND" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+    <!-- GCP：輸出 Cloud Logging 結構化 JSON（StackdriverJsonLayout，含 trace/span 關聯） -->
+    <springProfile name="gcp">
+        <include resource="com/google/cloud/spring/logging/logback-json-appender.xml"/>
+
+        <logger name="FRONTEND" level="INFO" additivity="false">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </logger>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON"/>
+        </root>
+    </springProfile>
 </configuration>

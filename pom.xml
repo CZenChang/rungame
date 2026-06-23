@@ -22,7 +22,21 @@
 		<java.version>25</java.version>
 		<start-class>com.dodognoman.rungame.RungameApplication</start-class>
 		<testcontainers.version>1.21.4</testcontainers.version>
+		<!-- 8.x 起才支援 Spring Boot 4.0 / Spring Framework 7 -->
+		<spring-cloud-gcp.version>8.0.4</spring-cloud-gcp.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>${spring-cloud-gcp.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<dependencies>
 		<!-- Web -->
@@ -111,6 +125,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- GCP Cloud Logging — 結構化 JSON 日誌 + trace 關聯（版本由 BOM 管理） -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>spring-cloud-gcp-starter-logging</artifactId>
+		</dependency>
+
 		<!-- BCrypt 密碼加密（僅 crypto，不引入完整 Spring Security） -->
 		<dependency>
 			<groupId>org.springframework.security</groupId>
@@ -121,6 +141,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+
+		<!-- 明確宣告 mockito-core，供 surefire 以 -javaagent 載入（避免 self-attaching 警告） -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
 

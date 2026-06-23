@@ -73,11 +73,9 @@ management:
 
 # ─── Logging ──────────────────────────────────────────────────────────────
 logging:
-  pattern:
-    console: "[traceId: %X{traceId}] %-5level %logger{36} - %msg %n"
   level:
     root: INFO
-    com.dodognoman.rungame: info
+    com.dodognoman.rungame: INFO
     org.hibernate.SQL: WARN
 
 server:
