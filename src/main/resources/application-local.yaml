@@ -9,6 +9,8 @@ spring:
     baseline-on-migrate: true
 
 logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level) %clr(%logger{36}){cyan} %clr([%X{traceId}]){magenta} - %msg%n"
   level:
     com.dodognoman.rungame: DEBUG
     org.hibernate.SQL: DEBUG

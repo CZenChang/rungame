@@ -74,10 +74,10 @@ management:
 # ─── Logging ──────────────────────────────────────────────────────────────
 logging:
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}] %-5level %logger{36} - %msg%n"
+    console: "[traceId: %X{traceId}] %-5level %logger{36} - %msg %n"
   level:
     root: INFO
-    com.dodognoman.rungame: DEBUG
+    com.dodognoman.rungame: info
     org.hibernate.SQL: WARN
 
 server:
