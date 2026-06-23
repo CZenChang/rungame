@@ -1,6 +1,5 @@
-package com.dodognoman.rungame.common;
+package com.dodognoman.rungame.authjwt;
 
-import com.dodognoman.rungame.authjwt.JwtService;
 import com.dodognoman.rungame.user.repo.User;
 import io.jsonwebtoken.Claims;
 import org.junit.jupiter.api.BeforeEach;

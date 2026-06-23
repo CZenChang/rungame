@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,7 @@ import java.io.IOException;
  * 利用 CacheManager (Caffeine) 攔截短時間內的相同請求
  */
 @Component
+@Order(1)
 public class PreventRepeatFilter extends OncePerRequestFilter {
 
     private final CacheManager cacheManager;

@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.MDC;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -16,6 +17,7 @@ import java.util.UUID;
  * 請求追蹤過濾器，為每個請求生成唯一的 traceId 並放入 MDC
  */
 @Component
+@Order(10)
 public class TraceIdFilter extends OncePerRequestFilter {
 
     public static final String TRACE_ID_KEY = "traceId";
