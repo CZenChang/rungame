@@ -2,76 +2,55 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> 人類向的專案介紹、快速開始、部署、環境變數、Actuator / Logging 等，請看 [README.md](README.md)。
+> 本檔只記錄「AI 工作時需特別注意的規則與慣例」，避免與 README 重複。
+
 ---
 
-## 專案概覽
+## 專案一句話
 
-`rungame` 是一個以 **Spring Boot 4.x + Java 25 + PostgreSQL** 為核心技術棧的後端服務，使用 Maven 管理依賴。
+`rungame` 是 **Spring Boot 4.0.6 + Java 25 + PostgreSQL** 的後端服務（Maven、Group ID `com.dodognoman`，進入點 `RungameApplication`）。技術棧細節見 [README.md](README.md)。
 
-- **Group ID**：`com.dodognoman`
-- **主程式進入點**：`src/main/java/com/dodognoman/rungame/RungameApplication.java`
+---
+
+## 動手前必讀的雷區
+
+- **Spring Boot 4.0.6**：許多 API 與 3.x 不同，且**自動配置被拆成獨立模組**——某些功能需額外引入對應的 `spring-boot-<feature>` 模組才會自動配置（例如 Flyway 需 `spring-boot-flyway`）。查文件務必確認是 4.x。
+- **Java 25**：可放心使用最新語言特性（Records、Pattern Matching、Virtual Threads 等）；本專案已啟用 virtual threads。
+- **測試需 Docker**：整合測試用 Testcontainers 起 PostgreSQL，跑測試前要先啟動 Docker。
+- **DB schema 用 Flyway 管**：`spring.jpa.hibernate.ddl-auto=validate`，**不會自動建表**。改 schema 一律新增 `src/main/resources/db/migration/V{版本}__{描述}.sql`，不要改既有腳本。
+
+---
+
+## 程式碼慣例
+
+- **Package 以「功能」拆分**：一個功能一個頂層 package，含業務功能（`user/`、`score/`）與系統功能（`authjwt/`、`filter/`）。新增功能時比照辦理，各自維護 Controller / Service / dto / repo，避免跨功能直接相依。詳見 [README.md](README.md) 的 package 章節。
+- **API 回應**：統一包在 `common/dto/ApiResponse`，錯誤碼用 `common/exception/ErrorCode`。
+- **設定與機敏資訊**：寫在 `src/main/resources/application.yaml`，敏感值一律走環境變數（如 `${DB_HOST}`、`${JWT_SECRET}`），不要寫死。
 
 ---
 
 ## 常用指令
 
-所有 Maven 指令請在 `rungame/` 子目錄下執行（即 `pom.xml` 所在位置）。
+於 `pom.xml` 所在目錄執行；Windows 用 `mvnw.cmd`，其餘平台用 `./mvnw`。
 
 ```bash
-# 編譯並啟動（JVM 模式）
-./mvnw spring-boot:run
-
-# 執行所有測試
-./mvnw test
-
-# 執行單一測試類別
-./mvnw test -Dtest=RungameApplicationTests
-
-# 打包（JVM jar）
-./mvnw package
+./mvnw spring-boot:run                      # 啟動（本機開發，吃 default profile）
+./mvnw test                                 # 全部測試
+./mvnw test -Dtest=ScoreServiceTest         # 單一測試類別
+./mvnw package                              # 打包 jar
 ```
 
-Windows 環境請將 `./mvnw` 替換為 `mvnw.cmd`。
+> 部署、profile（`gcp`）、環境變數等請參照 [README.md](README.md)。
 
 ---
 
-## 技術架構
-
-### 核心依賴
-
-| 功能 | 套件 |
-|------|------|
-| Web API | `spring-boot-starter-web` |
-| ORM | `spring-boot-starter-data-jpa` |
-| 資料庫 | PostgreSQL（執行期） |
-| DB 遷移 | Flyway（`flyway-core` + `flyway-database-postgresql`） |
-| 輸入驗證 | `spring-boot-starter-validation` |
-| 健康檢查 / 指標 | `spring-boot-starter-actuator` |
-| 整合測試 DB | Testcontainers（`org.testcontainers:postgresql`） |
-
-### 資料庫遷移（Flyway）
-
-遷移腳本放置於 `src/main/resources/db/migration/`，命名慣例為 `V{版本}__{描述}.sql`。測試環境透過 Testcontainers 自動啟動 PostgreSQL 容器，不需本機安裝資料庫。
-
-### 設定檔
-
-`src/main/resources/application.yaml` 目前僅定義應用程式名稱。資料庫連線、Flyway 等設定應在此擴充，建議以 `spring.datasource.*` 和環境變數（`${DB_URL}`）管理敏感資訊。
-
----
-
-## 文件目錄
+## 文件索引
 
 | 路徑 | 說明 |
 |------|------|
+| [README.md](README.md) | 人類向總覽：快速開始、部署、環境變數、Actuator、Logging |
 | `reads/db/schema.md` | 資料表欄位定義與說明 |
 | `reads/db/erd.md` | 資料表關聯與 ER 圖 |
 | `reads/db/decisions.md` | 資料庫設計決策紀錄 |
-| `reads/api/api.md` | API 總文件（ApiResponse 結構、Token 說明、Users / Scores / Frontend Log） |
-
----
-
-## 開發注意事項
-
-- **Spring Boot 版本為 4.0.6**，部分 API 與 3.x 有差異，查閱文件時請確認版本。
-- **Java 版本為 25**，可使用最新語言特性（Records、Pattern Matching、Virtual Threads 等）。
-- 整合測試依賴 Docker（Testcontainers），執行測試前請確保 Docker 服務已啟動。
+| `reads/api/api.md` | API 總文件（ApiResponse、Token、Users / Scores / Frontend Log） |
