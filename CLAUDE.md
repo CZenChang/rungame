@@ -54,3 +54,4 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `reads/db/erd.md` | 資料表關聯與 ER 圖 |
 | `reads/db/decisions.md` | 資料庫設計決策紀錄 |
 | `reads/api/api.md` | API 總文件（ApiResponse、Token、Users / Scores / Frontend Log） |
+| `reads/gcpdevelop.md` | GCP 部署：Cloud Logging、Ops Agent 安裝、舊日誌清理 |

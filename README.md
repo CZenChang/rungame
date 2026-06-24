@@ -124,7 +124,6 @@ com.dodognoman.rungame
 ```
 全域 pre path /rungame
 GET    /actuator/health           健康檢查
-GET    /actuator/metrics          指標
 ```
 
 ## 環境變數
@@ -190,80 +189,6 @@ timestamp 與當前時間誤差超過約 10 秒會被視為過期（防重放）
 ./mvnw.cmd spring-boot:run
 ```
 
-### 部署到 GCP（Cloud Logging）
+### 部署到 GCP
 
-透過 `spring-cloud-gcp-starter-logging`（BOM `spring-cloud-gcp-dependencies` 8.x，對應 Spring Boot 4）。啟用 `gcp` profile 後，`StackdriverJsonLayout` 把 JSON **直接寫到檔案**，再由 Ops Agent 收取。
-
-> **為什麼寫檔而不是 stdout？** stdout 會被 journald/rsyslog 收走並在每行前加上 `時間 主機 java[pid]:` 前綴，Ops Agent 以 syslog 接收器讀取時會把「前綴 + JSON」整行當成純文字字串，導致 Cloud Logging **無法解析 JSON**（severity、trace 都抽不出來）。直接寫專屬檔案可繞過此問題，且磁碟寫入比 journald + syslog 兩份還少。
-
-**1. 啟動時掛 `gcp` profile**
-
-```bash
-java -jar rungame.jar --spring.profiles.active=gcp
-# systemd 則設 Environment=SPRING_PROFILES_ACTIVE=gcp
-```
-
-- project id 在 Compute Engine 上由 metadata server 自動偵測；保險可設 `SPRING_CLOUD_GCP_LOGGING_PROJECT_ID=<專案ID>`。
-- `StackdriverJsonLayout` 預設讀 MDC 的 `traceId` / `spanId`，自動與 `TraceIdFilter` 對齊。
-- 日誌目錄預設 `/var/log/rungame`，可用 `LOG_DIR` 環境變數覆蓋。確保服務使用者可寫（或在 systemd unit 設 `LogsDirectory=rungame`）：
-  ```bash
-  sudo mkdir -p /var/log/rungame
-  sudo chown <服務使用者>:<group> /var/log/rungame
-  ```
-
-**2. 安裝 Ops Agent 並設定讀取該檔**
-
-```bash
-curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent.sh
-sudo bash add-google-cloud-ops-agent.sh --also-install
-```
-
-編輯 `/etc/google-cloud-ops-agent/config.yaml`：
-
-```yaml
-logging:
-  receivers:
-    rungame_app:
-      type: files
-      include_paths:
-        - /var/log/rungame/app.json
-  processors:
-    rungame_json:
-      type: parse_json
-    rungame_severity:
-      type: modify_fields
-      fields:
-        severity: { move_from: jsonPayload.severity }
-    rungame_trace:
-      type: modify_fields
-      fields:
-        trace: { move_from: 'jsonPayload."logging.googleapis.com/trace"' }
-  service:
-    pipelines:
-      rungame:
-        receivers: [rungame_app]
-        processors: [rungame_json, rungame_severity, rungame_trace]
-```
-
-```bash
-sudo systemctl restart google-cloud-ops-agent
-```
-
-### 清理舊的 stdout 日誌
-
-改成寫檔後，journald / syslog 不會再長新的應用日誌，但**之前累積的舊檔需手動清**：
-
-```bash
-# journald
-journalctl --disk-usage                 # 看佔用
-sudo journalctl --vacuum-time=2d        # 只留最近 2 天
-# 或 sudo journalctl --vacuum-size=100M
-
-# rsyslog 的 /var/log/syslog（用 truncate，不要 rm 正開著的檔）
-sudo truncate -s 0 /var/log/syslog
-sudo rm -f /var/log/syslog.*.gz /var/log/syslog.[0-9]*
-```
-
-（可選）長期防爆，於 `/etc/systemd/journald.conf` 設 `SystemMaxUse=100M` / `MaxRetentionSec=2day` 後 `sudo systemctl restart systemd-journald`。
-
-> `/var/log/rungame/app.json` 由 logback rolling policy 自動輪替（保留 30 天），不需手動清。
+`gcp` profile 的 Cloud Logging 設定、Ops Agent 安裝、舊日誌清理等詳細步驟，請見 [reads/gcpdevelop.md](reads/gcpdevelop.md)。
