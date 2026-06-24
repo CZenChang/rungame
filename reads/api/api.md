@@ -117,12 +117,32 @@ Base URL：`/rungame/api/users`
 }
 ```
 
+### username 已存在時的行為
+
+> 帳號重複**不回錯誤**，而是回 `201`、`error: 0`，但 `data` 內所有欄位皆為 `null`。
+
+```json
+{
+  "error": 0,
+  "message": "OK",
+  "data": {
+    "userId": null,
+    "username": null,
+    "role": null,
+    "accessToken": null,
+    "tokenExpiresAt": null
+  },
+  "timestamp": "2026-06-24T10:00:00"
+}
+```
+
+前端應以 **`data.accessToken !== null`** 判斷是否真的註冊成功，而非僅看 HTTP status 或 `error`。
+
 ### 錯誤
 
 | Status | 原因 |
 |--------|------|
 | `400` | 欄位驗證失敗（格式不符、必填未填） |
-| `409` | username 已被使用 |
 
 ---
 

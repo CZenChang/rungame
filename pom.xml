@@ -14,11 +14,12 @@
 
 	<groupId>com.dodognoman</groupId>
 	<artifactId>rungame</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>${revision}</version>
 	<name>rungame</name>
 	<description>Spring Boot 4.x + Java 25 + PostgreSQL</description>
 
 	<properties>
+		<revision>dev</revision>
 		<java.version>25</java.version>
 		<start-class>com.dodognoman.rungame.RungameApplication</start-class>
 		<testcontainers.version>1.21.4</testcontainers.version>

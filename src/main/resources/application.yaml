@@ -83,7 +83,7 @@ server:
   servlet:
     context-path: /rungame
   tomcat:
-    max-connections: 1000
+    max-connections: 100
     accept-count: 100   #等待隊列的最大長度，超過後會拒絕新的連接
   shutdown: graceful
 
