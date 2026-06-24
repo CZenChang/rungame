@@ -1,4 +1,4 @@
-package com.dodognoman.rungame.config;
+package com.dodognoman.rungame.common.config;
 
 import com.dodognoman.rungame.authjwt.AuthInterceptor;
 import org.springframework.context.annotation.Configuration;

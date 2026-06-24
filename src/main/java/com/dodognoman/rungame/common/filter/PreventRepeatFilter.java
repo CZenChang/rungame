@@ -1,4 +1,4 @@
-package com.dodognoman.rungame.filter;
+package com.dodognoman.rungame.common.filter;
 
 import com.dodognoman.rungame.common.dto.ApiResponse;
 import com.dodognoman.rungame.common.exception.ErrorCode;

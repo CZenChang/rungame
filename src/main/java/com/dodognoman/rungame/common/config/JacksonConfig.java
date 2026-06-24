@@ -1,4 +1,4 @@
-package com.dodognoman.rungame.config;
+package com.dodognoman.rungame.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

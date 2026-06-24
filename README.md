@@ -145,7 +145,7 @@ GET    /actuator/metrics          指標
 
 `/actuator/**` 不是用帳密保護，而是**ECDSA 簽章驗證**：呼叫端用私鑰對 timestamp 簽章，Server 用公鑰驗簽。即使封包被攔截，攻擊者沒有私鑰也無法偽造新請求。
 
-由 [`ActuatorAuthFilter`](src/main/java/com/dodognoman/rungame/filter/ActuatorAuthFilter.java) 實作，採 **fail-closed**：若 `ACTUATOR_PUBLIC_KEY` 未設定或載入失敗，所有 actuator 請求一律被拒絕。
+由 [`ActuatorAuthFilter`](src/main/java/com/dodognoman/rungame/common/filter/ActuatorAuthFilter.java) 實作，採 **fail-closed**：若 `ACTUATOR_PUBLIC_KEY` 未設定或載入失敗，所有 actuator 請求一律被拒絕。
 
 ### 1. 產生金鑰對（ActuatorKeyGen）
 
@@ -173,7 +173,7 @@ timestamp 與當前時間誤差超過約 10 秒會被視為過期（防重放）
 
 ## 日誌（Logging）
 
-日誌格式由 [`logback-spring.xml`](src/main/resources/logback-spring.xml) 依 **Spring profile** 切換，所有 log 皆帶請求追蹤碼 `traceId`（由 [`TraceIdFilter`](src/main/java/com/dodognoman/rungame/filter/TraceIdFilter.java) 在每個請求寫入 MDC）。
+日誌格式由 [`logback-spring.xml`](src/main/resources/logback-spring.xml) 依 **Spring profile** 切換，所有 log 皆帶請求追蹤碼 `traceId`（由 [`TraceIdFilter`](src/main/java/com/dodognoman/rungame/common/filter/TraceIdFilter.java) 在每個請求寫入 MDC）。
 
 | Profile | 輸出 | 用途 |
 |---------|------|------|
