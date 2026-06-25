@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 程式碼慣例
 
-- **Package 以「功能」拆分**：一個功能一個頂層 package，含業務功能（`user/`、`score/`）與系統功能（`authjwt/`、`filter/`）。新增功能時比照辦理，各自維護 Controller / Service / dto / repo，避免跨功能直接相依。詳見 [README.md](README.md) 的 package 章節。
+- **Package 以「功能」拆分**：一個功能一個頂層 package，含業務功能（`user/`、`score/`）與系統功能（`authjwt/`）。跨請求的共用 Filter 與基礎設施配置收在 `common/` 底下（`common/filter/`、`common/config/`），不是頂層 package。新增功能時比照辦理，各自維護 Controller / Service / dto / repo，避免跨功能直接相依。詳見 [README.md](README.md) 的 package 章節。
 - **API 回應**：統一包在 `common/dto/ApiResponse`，錯誤碼用 `common/exception/ErrorCode`。
 - **設定與機敏資訊**：寫在 `src/main/resources/application.yaml`，敏感值一律走環境變數（如 `${DB_HOST}`、`${JWT_SECRET}`），不要寫死。
 

@@ -101,7 +101,7 @@ Base URL：`/rungame/api/users`
 
 | 欄位 | 型別 | 必填 | 限制 |
 |------|------|------|------|
-| `username` | string | ✓ | 3–50 字元 |
+| `username` | string | ✓ | 3–20 字元 |
 | `password` | string | ✓ | 6–100 字元 |
 
 ### Response `201 Created`（`data`）
@@ -112,7 +112,6 @@ Base URL：`/rungame/api/users`
   "username": "player1",
   "role": "USER",
   "accessToken": "<jwt>",
-  "refreshToken": "<jwt>",
   "tokenExpiresAt": "2026-06-08T10:00:00+08:00"
 }
 ```
@@ -172,7 +171,6 @@ Base URL：`/rungame/api/users`
   "username": "player1",
   "role": "USER",
   "accessToken": "<jwt>",
-  "refreshToken": "<jwt>",
   "tokenExpiresAt": "2026-06-08T10:00:00+08:00"
 }
 ```

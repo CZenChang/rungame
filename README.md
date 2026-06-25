@@ -47,7 +47,7 @@ docker compose up --build
 以**功能**為主軸拆分 package，一個功能一個頂層 package。這裡的「功能」不限於業務功能，也包含系統功能：
 
 - **業務功能**：例如 `user/`（使用者）、`score/`（分數）。
-- **系統功能**：例如 `authjwt/`（JWT 驗證）、`filter/`（共用 Filter）。
+- **系統功能**：例如 `authjwt/`（JWT 驗證）；跨請求的共用 Filter 與基礎設施配置則收在 `common/` 底下（`common/filter/`、`common/config/`）。
 
 好處是**找東西時依「功能」直覺定位**：要改 JWT 就看 `authjwt/`、要改分數就看 `score/`，相關的 Controller / Service / Entity 都集中在同一個 package 內，瀏覽與閱讀都直觀，不需要在 `controllers/`、`services/`、`repositories/` 之間來回跳。
 
@@ -78,20 +78,18 @@ com.dodognoman.rungame
 ├── frontendlog/                     # 系統功能：前端日誌落地
 │   └── FrontendLogController.java
 │
-├── filter/                          # 系統功能：跨請求 Filter
-│   ├── TraceIdFilter.java           #   產生 traceId 寫入 MDC
-│   ├── PreventRepeatFilter.java     #   防短時間重複請求（429）
-│   └── ActuatorAuthFilter.java      #   /actuator 簽章驗證
-│
-├── common/                          # 跨功能共用元件
-│   ├── BaseEntity.java              #   共用 Entity 基底
-│   ├── dto/ApiResponse.java         #   統一回應結構
-│   ├── exception/                   #   ErrorCode、GlobalExceptionAdvice
-│   └── util/ActuatorKeyGen.java     #   一次性金鑰產生工具
-│
-└── config/                          # 基礎設施配置（@Configuration）
-    ├── JacksonConfig.java           #   Jackson 全域配置
-    └── WebMvcConfig.java            #   攔截器 / MVC 註冊
+└── common/                          # 跨功能共用元件
+    ├── BaseEntity.java              #   共用 Entity 基底
+    ├── dto/ApiResponse.java         #   統一回應結構
+    ├── exception/                   #   ErrorCode、GlobalExceptionAdvice
+    ├── util/ActuatorKeyGen.java     #   一次性金鑰產生工具
+    ├── filter/                      #   跨請求 Filter
+    │   ├── TraceIdFilter.java       #     產生 traceId 寫入 MDC
+    │   ├── PreventRepeatFilter.java #     防短時間重複請求（429）
+    │   └── ActuatorAuthFilter.java  #     /actuator 簽章驗證
+    └── config/                      #   基礎設施配置（@Configuration）
+        ├── JacksonConfig.java       #     Jackson 全域配置
+        └── WebMvcConfig.java        #     攔截器 / MVC 註冊
 ```
 
 ### Package 拆分原則
@@ -102,7 +100,8 @@ com.dodognoman.rungame
 | `{功能}/dto/` | Request / Response 物件，只做資料搬運，不含邏輯 |
 | `{功能}/repo/` | JPA Entity 與 Repository，隱藏資料存取細節 |
 | `common/` | 跨多個功能共用的服務、工具、回應結構與例外處理 |
-| `config/` | Spring `@Configuration` 類，負責 Bean 宣告與環境初始化 |
+| `common/filter/` | 跨請求的 Servlet Filter（traceId、防重複、actuator 驗簽） |
+| `common/config/` | Spring `@Configuration` 類，負責 Bean 宣告與環境初始化 |
 
 新增功能時，以**功能名稱**建立新的頂層 package（業務如 `game/`、系統如 `audit/`），各自維護自己需要的 Controller / Service / dto / repo，避免跨功能直接相互依賴。
 
@@ -121,10 +120,20 @@ com.dodognoman.rungame
 
 ## API 端點
 
-```
-全域 pre path /rungame
-GET    /actuator/health           健康檢查
-```
+全域前綴路徑 `context-path = /rungame`，以下表格省略此前綴。完整的請求/回應規格、錯誤碼、ApiResponse 結構請見 [reads/api/api.md](reads/api/api.md)。
+
+| Method | 路徑 | 驗證 | 說明 |
+|--------|------|------|------|
+| `POST` | `/api/users/register` | 🌐 公開 | 註冊，回傳 access token |
+| `POST` | `/api/users/login` | 🌐 公開 | 登入，回傳 access token |
+| `PUT`  | `/api/scores/me` | 🔒 JWT | 更新（覆蓋）自己的分數 |
+| `GET`  | `/api/scores/me` | 🔒 JWT | 查詢自己的分數 |
+| `GET`  | `/api/scores/leaderboard` | 🌐 公開 | 排行榜前十名 |
+| `POST` | `/api/frontend-log` | 🌐 公開 | 前端日誌落地（`text/plain`） |
+| `GET`  | `/actuator/health` | 🔑 簽章 | 健康檢查 |
+| `GET`  | `/actuator/metrics` | 🔑 簽章 | 指標 |
+
+> 🔒 需帶 `Authorization: Bearer <token>`；🔑 走 ECDSA 簽章驗證（見下方 Actuator 端點保護）。
 
 ## 環境變數
 

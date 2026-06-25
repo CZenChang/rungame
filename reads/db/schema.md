@@ -7,10 +7,9 @@
 | 欄位 | 型別 | 限制 | 說明 |
 |------|------|------|------|
 | `id` | `BIGSERIAL` | PK | 自增主鍵 |
-| `username` | `VARCHAR(50)` | NOT NULL, UNIQUE | 使用者名稱 |
+| `username` | `VARCHAR(20)` | NOT NULL, UNIQUE | 使用者名稱 |
 | `password_hash` | `VARCHAR(255)` | NOT NULL | bcrypt hash，不存明文 |
-| `access_token` | `TEXT` | | JWT / Session access token |
-| `refresh_token` | `TEXT` | | Refresh token |
+| `access_token` | `TEXT` | | JWT access token |
 | `token_expires_at` | `TIMESTAMPTZ` | | Token 到期時間 |
 | `register_ip` | `INET` | | 註冊時的 IP（PostgreSQL 原生 INET 型別） |
 | `last_login_ip` | `INET` | | 最後登入 IP |
@@ -18,19 +17,18 @@
 | `is_active` | `BOOLEAN` | NOT NULL, DEFAULT `TRUE` | 帳號是否啟用 |
 | `last_login_at` | `TIMESTAMPTZ` | | 最後登入時間 |
 | `created_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT `NOW()` | 建立時間 |
-| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT `NOW()` | 更新時間，由 trigger 自動維護 |
+| `updated_at` | `TIMESTAMPTZ` | NOT NULL, DEFAULT `NOW()` | 更新時間，由 JPA Auditing（`@LastModifiedDate`）維護 |
 
 ### 索引
 
 | 索引名稱 | 欄位 | 條件 |
 |----------|------|------|
-| `idx_users_email` | `email` | |
 | `idx_users_username` | `username` | |
 | `idx_users_access_token` | `access_token` | `WHERE access_token IS NOT NULL` |
 
-### Trigger
+### 時間戳記維護
 
-`trg_users_updated_at`：每次 UPDATE 前自動將 `updated_at` 設為 `NOW()`。
+`created_at` / `updated_at` 由 **JPA Auditing**（`BaseEntity` 的 `@CreatedDate` / `@LastModifiedDate`）在應用層維護，DB 端僅以 `DEFAULT NOW()` 兜底，**沒有 trigger**。
 
 ## scores
 
