@@ -48,7 +48,7 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
             loaded = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
         } catch (Exception e) {
             logger.warn("無法載入 actuator.public-key（請執行 ActuatorKeyGen 並設定 ACTUATOR_PUBLIC_KEY）；"
-                    + "所有 /actuator/** 請求將一律被拒絕", e);
+                    + "所有 /actuator/** 請求將一律被拒絕");
         }
         this.publicKey = loaded;
     }
