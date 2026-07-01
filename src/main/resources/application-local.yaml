@@ -1,4 +1,7 @@
 spring:
+  main:
+    lazy-initialization: true
+
   jpa:
     show-sql: true
     hibernate:
@@ -8,6 +11,12 @@ spring:
     enabled: true
     baseline-on-migrate: true
 
+  cloud:
+    gcp:
+      core.enabled: false
+      logging:
+        enabled: false
+
 logging:
   pattern:
     console: "%clr(%d{yyyy-MM-dd HH:mm:ss}){faint} %clr(%-5level) %clr(%logger{36}){cyan} %clr([%X{traceId}]){magenta} - %msg%n"
@@ -15,3 +24,6 @@ logging:
     com.dodognoman.rungame: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE
+
+
+

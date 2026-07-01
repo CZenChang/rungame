@@ -135,6 +135,24 @@ com.dodognoman.rungame
 
 > 🔒 需帶 `Authorization: Bearer <token>`；🔑 走 ECDSA 簽章驗證（見下方 Actuator 端點保護）。
 
+### gRPC 端點
+
+除 REST（埠 `8080`）外，另以 [Spring gRPC](https://github.com/spring-projects/spring-grpc) 1.0 開了獨立的 gRPC server（預設埠 `9090`，可用 `GRPC_PORT` 覆蓋）。
+
+| Service / RPC | 驗證 | 說明 |
+|---------------|------|------|
+| `rungame.score.v1.ScoreGrpcService/GetLeaderboard` | 🌐 公開 | 排行榜前十名（同 REST 的 `GET /api/scores/leaderboard`） |
+
+proto 定義在 [`src/main/proto/score.proto`](src/main/proto/score.proto)，服務實作在 [`ScoreGrpcEndpoint`](src/main/java/com/dodognoman/rungame/score/ScoreGrpcEndpoint.java)，與 REST 共用同一套 `ScoreService` 業務邏輯。已開啟 **server reflection**，可用 `grpcurl` 直接呼叫（無須本機帶 proto 檔）：
+
+```bash
+# 列出服務
+grpcurl -plaintext localhost:9090 list
+
+# 呼叫排行榜
+grpcurl -plaintext -d '{}' localhost:9090 rungame.score.v1.ScoreGrpcService/GetLeaderboard
+```
+
 ## 環境變數
 
 | 變數 | 預設值 | 說明 |
@@ -146,6 +164,7 @@ com.dodognoman.rungame
 | `DB_PASS` | `postgres` | 密碼 |
 | `JWT_SECRET` | `change-me-in-production-...` | JWT 簽章密鑰，正式環境**務必覆蓋**，至少 32 字元 |
 | `ACTUATOR_PUBLIC_KEY` | （無，未設定時拒絕所有 actuator 請求） | actuator 驗簽用 ECDSA P-256 公鑰（Base64），見下方說明 |
+| `GRPC_PORT` | `9090` | gRPC server 監聽埠 |
 
 ---
 

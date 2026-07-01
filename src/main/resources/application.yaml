@@ -48,16 +48,18 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
 
-  # ─── Cache Configuration ────────────────────────────────────────────────
-  cache:
-    type: caffeine
-    cache-names: preventRepeat
-    caffeine:
-      spec: expireAfterWrite=2s,maximumSize=1000
-
+# -- shutdown setting
   lifecycle:
     timeout-per-shutdown-phase: 10s
 
+  # ─── gRPC Server ─────────────────────────────────────────────────────────
+  # 與 HTTP（8080）分開的獨立埠；服務以 @GrpcService 自動註冊。
+  grpc:
+    server:
+      port: ${GRPC_PORT:9090}
+      # 啟用 server reflection，方便 grpcurl / Postman 等工具在無 proto 檔下探索服務
+      reflection:
+        enabled: true
 # ─── Actuator ─────────────────────────────────────────────────────────────
 management:
   endpoints:

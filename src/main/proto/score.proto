@@ -1,0 +1,52 @@
+// ===========================================================================
+// score.proto — 分數功能的 gRPC「介面契約」
+//
+// 這個檔案描述「有哪些 gRPC 服務、方法、以及方法的輸入/輸出資料長相」，
+// 它跟程式語言無關。建置時 protobuf-maven-plugin 會讀它，
+// 自動產生 Java 類別到 target/generated-sources/protobuf（不用手寫 DTO）。
+// 角色類似 REST 的 OpenAPI/Swagger，差別在它「會直接生成可用程式碼」。
+//
+// 改完這個檔，要重跑 ./mvnw compile 才會更新產出的 Java 類別。
+// ===========================================================================
+
+// proto 語法版本。proto3 是現行版本，欄位預設可省略、沒有 required。
+syntax = "proto3";
+
+// ── 產碼設定（option）：只影響「產出的 Java 長怎樣」，不影響傳輸內容 ──────────
+// 每個 message / service 各自獨立一個 .java 檔（false 則全部塞進一個外層類別）。
+option java_multiple_files = true;
+// 產出的 Java 類別要放在哪個 package（對齊本專案「按功能分 package」慣例）。
+option java_package = "com.dodognoman.rungame.score.grpc";
+// 放零散常數（如檔案描述符）的外層類別名稱。
+option java_outer_classname = "ScoreProto";
+
+// proto 自己的命名空間（跟 Java package 不同概念）。用 v1 預留版本演進空間，
+// 客戶端呼叫時的完整服務名就是：rungame.score.v1.ScoreGrpcService
+package rungame.score.v1;
+
+// ── service：一組 gRPC 方法的集合，等同「一群 API 端點」───────────────────────
+service ScoreService {
+  // rpc = 一個遠端方法。語法：rpc 方法名(輸入 message) returns (輸出 message)。
+  // 取得排行榜（公開，對應 REST 的 GET /api/scores/leaderboard）。
+  rpc GetLeaderboard(LeaderboardRequest) returns (LeaderboardResponse);
+}
+
+// ── message：一筆結構化資料，等同 REST 的 request / response JSON ─────────────
+// 每個欄位後面的數字是「欄位編號（tag）」，是二進位編碼時的識別碼，
+// 一旦上線就不要再改動已用過的編號，否則新舊版本會對不上。
+
+// 排行榜查詢請求。目前無參數，保留空 message 以利日後擴充（如加入分頁、數量）。
+message LeaderboardRequest {
+}
+
+// 排行榜查詢回應。
+message LeaderboardResponse {
+  // repeated = 陣列/清單（可 0 到多筆），對應 Java 的 List<LeaderboardEntry>。
+  repeated LeaderboardEntry entries = 1;
+}
+
+// 單一排行榜項目。
+message LeaderboardEntry {
+  string username = 1;  // 使用者名稱
+  int32 score = 2;      // 分數
+}

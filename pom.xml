@@ -25,6 +25,12 @@
 		<testcontainers.version>1.21.4</testcontainers.version>
 		<!-- 8.x 起才支援 Spring Boot 4.0 / Spring Framework 7 -->
 		<spring-cloud-gcp.version>8.0.4</spring-cloud-gcp.version>
+		<!-- Spring gRPC 1.0.x 對應 Spring Boot 4.0 -->
+		<spring-grpc.version>1.0.0</spring-grpc.version>
+		<!-- protobuf 編譯外掛（自動下載 protoc / grpc plugin，免裝 os-maven-plugin，跨平台） -->
+		<protobuf-maven-plugin.version>4.1.1</protobuf-maven-plugin.version>
+		<protoc.version>4.33.1</protoc.version>
+		<protoc-gen-grpc-java.version>1.77.0</protoc-gen-grpc-java.version>
 	</properties>
 
 	<dependencyManagement>
@@ -33,6 +39,14 @@
 				<groupId>com.google.cloud</groupId>
 				<artifactId>spring-cloud-gcp-dependencies</artifactId>
 				<version>${spring-cloud-gcp.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Spring gRPC BOM — 統一管理 grpc-java / protobuf 等版本 -->
+			<dependency>
+				<groupId>org.springframework.grpc</groupId>
+				<artifactId>spring-grpc-dependencies</artifactId>
+				<version>${spring-grpc.version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -138,10 +152,21 @@
 			<artifactId>spring-security-crypto</artifactId>
 		</dependency>
 
+		<!-- gRPC — Spring gRPC starter（內含 grpc-server 自動配置、預設埠 9090） -->
+		<dependency>
+			<groupId>org.springframework.grpc</groupId>
+			<artifactId>spring-grpc-spring-boot-starter</artifactId>
+		</dependency>
+
 		<!-- Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
@@ -159,6 +184,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<!-- fix spring-boot-testcontainers CVE -->
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-compress</artifactId>
+			<version>1.26.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.testcontainers</groupId>
 			<artifactId>postgresql</artifactId>
 			<version>1.21.4</version>
@@ -168,6 +200,30 @@
 
 	<build>
 		<plugins>
+			<!-- protobuf 編譯：自動下載 protoc 與 grpc-java 外掛，產碼到 target/generated-sources -->
+			<plugin>
+				<groupId>io.github.ascopes</groupId>
+				<artifactId>protobuf-maven-plugin</artifactId>
+				<version>${protobuf-maven-plugin.version}</version>
+				<configuration>
+					<protocVersion>${protoc.version}</protocVersion>
+					<binaryMavenPlugins>
+						<binaryMavenPlugin>
+							<groupId>io.grpc</groupId>
+							<artifactId>protoc-gen-grpc-java</artifactId>
+							<version>${protoc-gen-grpc-java.version}</version>
+						</binaryMavenPlugin>
+					</binaryMavenPlugins>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- Spring Boot Maven Plugin + AOT -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

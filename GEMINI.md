@@ -31,5 +31,10 @@
   `.\mvnw.cmd test`
 
 ## 注意事項 (Notes)
-- 整合測試需要 Docker 環境 (Testcontainers)。
+- 整合測試需要 Docker 環境 (Testcontainers)。專案使用 Testcontainers JDBC URL 的特殊語法，當連線字串為 `jdbc:tc:postgresql:17-alpine:///...` 且指定 driver 為 `org.testcontainers.jdbc.ContainerDatabaseDriver` 時，Testcontainers 會在幕後自動攔截連線請求，並啟動對應版本的 PostgreSQL 容器。
+  - **重要**: 若使用 `@DataJpaTest` 進行 Repository 測試，因其預設會嘗試替換為嵌入式資料庫（如 H2），請務必加上 `@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)`，以確保測試能正確使用 Testcontainers 啟動的 PostgreSQL。
 - `application.yaml` 管理基本設定，敏感資訊應使用環境變數。
+- **gRPC 測試規範:** 對於 gRPC 服務端點（例如 [ScoreGrpcEndpoint](file:///c:/ceizer/git/rungame/src/main/java/com/dodognoman/rungame/score/ScoreGrpcEndpoint.java)），建議優先使用 JUnit 5 與 Mockito 進行輕量級的單元測試，模擬 `StreamObserver` 的行為。若需進行整合測試：
+  1. 搭配 Testcontainers (`jdbc:tc:postgresql:17-alpine:///`) 自動啟動資料庫環境。
+  2. 為了避免 Client 解析隨機 Port 的時序問題，建議使用固定 Port（`spring.grpc.server.port=9090`）並透過設定檔綁定位址（`spring.grpc.client.channels.local.address=static://127.0.0.1:9090`），或是在程式碼中直接使用 `ManagedChannelBuilder` 傳入 `@Value("${local.grpc.port}")` 手動建立連線。
+- **JVM 警告訊息:** 執行應用程式或測試時，若出現 `WARNING: sun.misc.Unsafe::allocateMemory has been called by io.grpc.netty.shaded...` 等警告，這是因為 gRPC 底層的 Netty 框架使用了 Java 的內部 API 來優化記憶體效能。在較新的 Java 版本（如本專案的 Java 25）中，這類內部 API 已被標記為即將移除，因此會拋出警告。此警告 **不會影響程式正常運作，可以安全地忽略**。

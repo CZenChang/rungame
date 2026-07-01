@@ -19,6 +19,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Java 25**：可放心使用最新語言特性（Records、Pattern Matching、Virtual Threads 等）；本專案已啟用 virtual threads。
 - **測試需 Docker**：整合測試用 Testcontainers 起 PostgreSQL，跑測試前要先啟動 Docker。
 - **DB schema 用 Flyway 管**：`spring.jpa.hibernate.ddl-auto=validate`，**不會自動建表**。改 schema 一律新增 `src/main/resources/db/migration/V{版本}__{描述}.sql`，不要改既有腳本。
+- **gRPC 用 Spring gRPC 1.0**（對應 Spring Boot 4.0；非 net.devh/LogNet 第三方 starter）。proto 放 `src/main/proto/*.proto`，由 `protobuf-maven-plugin` 在 `compile` 階段產碼到 `target/generated-sources/protobuf`（產碼 package `com.dodognoman.rungame.<功能>.grpc`）。**改完 proto 要重跑 `./mvnw compile` 才會更新產碼**；服務實作 extend 產出的 `XxxGrpc.XxxImplBase` 並標 `@GrpcService`（`org.springframework.grpc.server.service.GrpcService`），與 REST 共用同一套 Service。gRPC server 走獨立埠 `9090`（`GRPC_PORT`）。
 
 ---
 
