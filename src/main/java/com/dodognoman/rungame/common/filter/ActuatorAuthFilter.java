@@ -4,6 +4,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -22,7 +23,6 @@ import java.util.Base64;
  * 保護 /actuator/** 端點：
  * 客戶端用 ECDSA 私鑰簽章 timestamp，Server 用公鑰驗簽。
  * 即使 HTTP 封包被攔截，攻擊者無法偽造新請求（缺少私鑰）。
- *
  * 必要 Headers:
  *   X-Timestamp : 毫秒級 Unix epoch（System.currentTimeMillis()）
  *   X-Signature : Base64(ECDSA_SHA256_sign(timestamp_string, privateKey))
@@ -46,7 +46,7 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
             byte[] keyBytes = Base64.getDecoder().decode(publicKeyBase64);
             KeyFactory kf = KeyFactory.getInstance("EC");
             loaded = kf.generatePublic(new X509EncodedKeySpec(keyBytes));
-        } catch (Exception e) {
+        } catch (Exception _) {
             logger.warn("無法載入 actuator.public-key（請執行 ActuatorKeyGen 並設定 ACTUATOR_PUBLIC_KEY）；"
                     + "所有 /actuator/** 請求將一律被拒絕");
         }
@@ -59,9 +59,9 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain) throws ServletException, IOException {
         // 公鑰未載入 → 此保護功能未正確配置，一律拒絕（fail-closed），不放行任何 actuator 請求
         if (publicKey == null) {
             logger.warn("拒絕 /actuator 請求：actuator.public-key 未載入");
@@ -80,7 +80,7 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
         long ts;
         try {
             ts = Long.parseLong(timestamp);
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException _) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid timestamp");
             return;
         }
@@ -101,7 +101,7 @@ public class ActuatorAuthFilter extends OncePerRequestFilter {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid signature");
                 return;
             }
-        } catch (Exception e) {
+        } catch (Exception _) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Signature verification failed");
             return;
         }
