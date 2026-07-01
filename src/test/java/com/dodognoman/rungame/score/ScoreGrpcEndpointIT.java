@@ -17,13 +17,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 /**
- * 主要測試 grpc 連線
+ * 主要測試 grpc 連線 ,  所以一個方法就可以了
  */
 @SpringBootTest(properties = {
         "spring.cloud.gcp.core.enabled=false",
         "spring.cloud.gcp.logging.enabled=false",
         "spring.datasource.url=jdbc:tc:postgresql:17-alpine:///rungame",
-        "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
+        "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver",
+        "spring.main.lazy-initialization=true"
 }
 )
 class ScoreGrpcEndpointIT {
