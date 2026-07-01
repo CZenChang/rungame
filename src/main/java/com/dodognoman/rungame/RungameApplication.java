@@ -11,7 +11,7 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Optional;
 
-@EnableCaching
+
 @EnableJpaAuditing(dateTimeProviderRef = "offsetDateTimeProvider")
 @SpringBootApplication
 public class RungameApplication {
