@@ -44,4 +44,15 @@ public class ScoreService {
     public List<LeaderboardEntry> leaderboard() {
         return scoreRepository.findLeaderboard(PageRequest.of(0, LEADERBOARD_SIZE));
     }
+
+    /** 
+     * 串流讀取排行榜，並透過 Consumer 回呼消耗資料。
+     * JPA Stream 必須在 @Transactional 方法內使用完畢（與資料庫保持連線）。
+     */
+    @Transactional(readOnly = true)
+    public void streamLeaderboard(java.util.function.Consumer<LeaderboardEntry> consumer) {
+        try (java.util.stream.Stream<LeaderboardEntry> stream = scoreRepository.streamLeaderboard()) {
+            stream.forEach(consumer);
+        }
+    }
 }

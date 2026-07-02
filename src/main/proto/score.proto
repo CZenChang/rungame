@@ -29,6 +29,9 @@ service ScoreService {
   // rpc = 一個遠端方法。語法：rpc 方法名(輸入 message) returns (輸出 message)。
   // 取得排行榜（公開，對應 REST 的 GET /api/scores/leaderboard）。
   rpc GetLeaderboard(LeaderboardRequest) returns (LeaderboardResponse);
+
+  // 支援串流（對應 REST SSE）。
+  rpc GetLeaderboardStream(LeaderboardRequest) returns (stream LeaderboardEntry);
 }
 
 // ── message：一筆結構化資料，等同 REST 的 request / response JSON ─────────────

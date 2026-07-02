@@ -38,3 +38,5 @@
   1. 搭配 Testcontainers (`jdbc:tc:postgresql:17-alpine:///`) 自動啟動資料庫環境。
   2. 為了避免 Client 解析隨機 Port 的時序問題，建議使用固定 Port（`spring.grpc.server.port=9090`）並透過設定檔綁定位址（`spring.grpc.client.channels.local.address=static://127.0.0.1:9090`），或是在程式碼中直接使用 `ManagedChannelBuilder` 傳入 `@Value("${local.grpc.port}")` 手動建立連線。
 - **JVM 警告訊息:** 執行應用程式或測試時，若出現 `WARNING: sun.misc.Unsafe::allocateMemory has been called by io.grpc.netty.shaded...` 等警告，這是因為 gRPC 底層的 Netty 框架使用了 Java 的內部 API 來優化記憶體效能。在較新的 Java 版本（如本專案的 Java 25）中，這類內部 API 已被標記為即將移除，因此會拋出警告。此警告 **不會影響程式正常運作，可以安全地忽略**。
+- **測試資源檔覆蓋 (Test Resources):** 在 Maven 專案結構中，如果於 `src/test/resources/` 放置與 `src/main/resources/` 同名、同路徑的檔案（例如 `application.yaml`），在執行測試時，`test` 目錄下的檔案會有較高的優先級，從而**覆蓋（取代）**原本 `main` 目錄下的設定。若檔案僅存在於 `main` 中，測試時依然可以正常讀取。
+- **SSE 與 JPA Stream 整合:** 若使用 `SseEmitter` 搭配 JPA `Stream` 進行大量資料推送，需利用 Virtual Thread 來處理。JPA `Stream` 必須在 `@Transactional` 方法內被消耗完畢（例如透過傳入 `Consumer` callback 到 Service 層）。在 Virtual Thread 的架構下，`SseEmitter.send()` 遇到網路延遲時的阻塞（Blocking）即是天然且高效的背壓（Backpressure）機制，無需額外引入複雜的 Reactive 框架。
