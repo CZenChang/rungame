@@ -8,6 +8,7 @@ import io.grpc.stub.ServerCallStreamObserver;
 import io.grpc.stub.StreamObserver;
 import org.springframework.grpc.server.service.GrpcService;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -17,18 +18,21 @@ import java.util.List;
 @GrpcService
 public class ScoreGrpcEndpoint extends ScoreServiceGrpc.ScoreServiceImplBase {
 
+    /** request 未帶 size（proto3 int32 預設 0）時套用的每頁筆數。 */
+    private static final int DEFAULT_SIZE = 10;
+
     private final ScoreService scoreService;
 
     public ScoreGrpcEndpoint(ScoreService scoreService) {
         this.scoreService = scoreService;
     }
 
-    /** 取得排行榜前十名，對應 REST 的 GET /api/scores/leaderboard。 */
+    /** 取得排行榜（支援分頁），對應 REST 的 GET /api/scores/leaderboard。 */
     @Override
     public void getLeaderboard(LeaderboardRequest request,
                                StreamObserver<LeaderboardResponse> responseObserver) {
-        List<com.dodognoman.rungame.score.grpc.LeaderboardEntry> entries = scoreService.leaderboard().stream()
-                .map(e -> com.dodognoman.rungame.score.grpc.LeaderboardEntry.newBuilder()
+        List<LeaderboardEntry> entries = scoreService.leaderboard(sizeOf(request), request.getPage()).stream()
+                .map(e -> LeaderboardEntry.newBuilder()
                         .setUsername(e.username())
                         .setScore(e.score())
                         .build())
@@ -45,9 +49,9 @@ public class ScoreGrpcEndpoint extends ScoreServiceGrpc.ScoreServiceImplBase {
     @Override
     public void getLeaderboardStream(LeaderboardRequest request, StreamObserver<LeaderboardEntry> responseObserver) {
 
-        // 真要做stream , 這邊也不該是一次性回傳所有資料, 而是要一筆一筆的回傳, 這邊先用簡單的方式實作
-        // 如果是from db 可以改用Stream(JPA有實現)
-        java.util.Iterator<LeaderboardEntry> iterator = scoreService.leaderboard().stream()
+        // 資料先在 service 的 @Transactional 內撈成記憶體 list——不可把 JPA Stream 帶進
+        // onReadyHandler，因為 handler 是非同步觸發，屆時交易/Session 已關閉。
+        Iterator<LeaderboardEntry> iterator = scoreService.leaderboard(sizeOf(request), request.getPage()).stream()
                 .map(e -> LeaderboardEntry.newBuilder()
                         .setUsername(e.username())
                         .setScore(e.score())
@@ -56,15 +60,20 @@ public class ScoreGrpcEndpoint extends ScoreServiceGrpc.ScoreServiceImplBase {
 
         ServerCallStreamObserver<LeaderboardEntry> servercall = (ServerCallStreamObserver<LeaderboardEntry>) responseObserver;
 
-        // OnReady 代表網路and client 都準備好了，才開始傳送資料
+        // OnReady 代表傳送 buffer 有空間才送；滿了就跳出，等下次 onReady 再續送（背壓）。
         servercall.setOnReadyHandler(() -> {
             while (servercall.isReady() && iterator.hasNext()) {
                 servercall.onNext(iterator.next());
             }
-
+            // 全部送完才 complete；中途 buffer 滿而跳出時 iterator 仍有資料，不會提前結束。
             if (!iterator.hasNext()) {
                 servercall.onCompleted();
             }
         });
+    }
+
+    /** request 未帶 size 時回傳預設值，避免 PageRequest 因 size=0 拋例外。 */
+    private static int sizeOf(LeaderboardRequest request) {
+        return request.getSize() > 0 ? request.getSize() : DEFAULT_SIZE;
     }
 }

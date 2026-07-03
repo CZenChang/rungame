@@ -65,7 +65,7 @@ class ScoreServiceTest {
         );
         when(scoreRepository.findLeaderboard(any(Pageable.class))).thenReturn(top);
 
-        List<LeaderboardEntry> result = scoreService.leaderboard();
+        List<LeaderboardEntry> result = scoreService.leaderboard(10, 0);
 
         assertThat(result).isEqualTo(top);
         ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);

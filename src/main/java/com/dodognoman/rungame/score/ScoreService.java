@@ -3,16 +3,17 @@ package com.dodognoman.rungame.score;
 import com.dodognoman.rungame.score.dto.LeaderboardEntry;
 import com.dodognoman.rungame.score.repo.Score;
 import com.dodognoman.rungame.score.repo.ScoreRepository;
+import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
 
 @Service
+@Validated
 public class ScoreService {
-
-    private static final int LEADERBOARD_SIZE = 10;
 
     private final ScoreRepository scoreRepository;
 
@@ -41,18 +42,7 @@ public class ScoreService {
 
     /** 排行榜前十名。 */
     @Transactional(readOnly = true)
-    public List<LeaderboardEntry> leaderboard() {
-        return scoreRepository.findLeaderboard(PageRequest.of(0, LEADERBOARD_SIZE));
-    }
-
-    /** 
-     * 串流讀取排行榜，並透過 Consumer 回呼消耗資料。
-     * JPA Stream 必須在 @Transactional 方法內使用完畢（與資料庫保持連線）。
-     */
-    @Transactional(readOnly = true)
-    public void streamLeaderboard(java.util.function.Consumer<LeaderboardEntry> consumer) {
-        try (java.util.stream.Stream<LeaderboardEntry> stream = scoreRepository.streamLeaderboard()) {
-            stream.forEach(consumer);
-        }
+    public List<LeaderboardEntry> leaderboard(@Min(1) int size , int page) {
+        return scoreRepository.findLeaderboard(PageRequest.of(page, size));
     }
 }

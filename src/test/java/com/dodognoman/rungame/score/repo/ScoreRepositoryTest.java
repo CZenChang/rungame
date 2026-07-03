@@ -18,6 +18,8 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.url=jdbc:tc:postgresql:17-alpine:///rungame",
         "spring.datasource.driver-class-name=org.testcontainers.jdbc.ContainerDatabaseDriver"
 })
+// @DataJpaTest 預設把 datasource 更換成 H2, 以免當連線資料是真實連線時，連線不到或是影響資料庫
+// 但已經改為連線到 testcontainers 的資料庫, 所以不需要再換成 H2
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 class ScoreRepositoryTest {
 

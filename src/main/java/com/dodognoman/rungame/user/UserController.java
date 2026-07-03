@@ -23,7 +23,6 @@ public class UserController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest req, HttpServletRequest httpRequest) {
         return ApiResponse.ok(userService.register(req, httpRequest.getRemoteAddr()));
     }

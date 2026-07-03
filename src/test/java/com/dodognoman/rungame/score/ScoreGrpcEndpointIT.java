@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 /**
@@ -46,7 +47,7 @@ class ScoreGrpcEndpointIT {
         List<LeaderboardEntry> mockLeaderboard = List.of(
                 new LeaderboardEntry("playerA", 500)
         );
-        when(scoreService.leaderboard()).thenReturn(mockLeaderboard);
+        when(scoreService.leaderboard(anyInt(), anyInt())).thenReturn(mockLeaderboard);
 
         // 建立 gRPC Client Stub
         Channel channel = channelFactory.createChannel("127.0.0.1:9090");
@@ -67,7 +68,7 @@ class ScoreGrpcEndpointIT {
         List<LeaderboardEntry> mockLeaderboard = List.of(
                 new LeaderboardEntry("playerA", 500)
         );
-        when(scoreService.leaderboard()).thenReturn(mockLeaderboard);
+        when(scoreService.leaderboard(anyInt(), anyInt())).thenReturn(mockLeaderboard);
 
         // 建立 gRPC Client Stub
         Channel channel = channelFactory.createChannel("127.0.0.1:9090");

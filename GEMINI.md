@@ -40,3 +40,6 @@
 - **JVM 警告訊息:** 執行應用程式或測試時，若出現 `WARNING: sun.misc.Unsafe::allocateMemory has been called by io.grpc.netty.shaded...` 等警告，這是因為 gRPC 底層的 Netty 框架使用了 Java 的內部 API 來優化記憶體效能。在較新的 Java 版本（如本專案的 Java 25）中，這類內部 API 已被標記為即將移除，因此會拋出警告。此警告 **不會影響程式正常運作，可以安全地忽略**。
 - **測試資源檔覆蓋 (Test Resources):** 在 Maven 專案結構中，如果於 `src/test/resources/` 放置與 `src/main/resources/` 同名、同路徑的檔案（例如 `application.yaml`），在執行測試時，`test` 目錄下的檔案會有較高的優先級，從而**覆蓋（取代）**原本 `main` 目錄下的設定。若檔案僅存在於 `main` 中，測試時依然可以正常讀取。
 - **SSE 與 JPA Stream 整合:** 若使用 `SseEmitter` 搭配 JPA `Stream` 進行大量資料推送，需利用 Virtual Thread 來處理。JPA `Stream` 必須在 `@Transactional` 方法內被消耗完畢（例如透過傳入 `Consumer` callback 到 Service 層）。在 Virtual Thread 的架構下，`SseEmitter.send()` 遇到網路延遲時的阻塞（Blocking）即是天然且高效的背壓（Backpressure）機制，無需額外引入複雜的 Reactive 框架。
+- **gRPC Client 標準寫法:**
+  - **Channel 與 Stub 複用**: gRPC 的 `ManagedChannel` 建立成本極高（涉及連線池、HTTP/2 連線建立等），**必須全域複用**。而基於 Channel 建立的 Stub (如 BlockingStub, FutureStub, AsyncStub) 也是**執行緒安全 (Thread-Safe)** 且輕量的，標準實務上同樣會作為單例 (Singleton) 複用。
+  - **Spring Boot 整合**: 若使用 `grpc-client-spring-boot-starter` (如 `net.devh`)，標準寫法是直接在 Service 中使用 `@GrpcClient("服務名稱")` 標註 Stub 欄位。底層框架會自動管理 Channel 的生命週期與連線池，並將實例化的 Stub 注入，開發者**不需要**手動將 Stub 宣告為 `@Bean`。

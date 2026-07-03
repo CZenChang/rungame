@@ -32,7 +32,7 @@ class ScoreGrpcEndpointTest {
                 new LeaderboardEntry("player1", 150),
                 new LeaderboardEntry("player2", 120)
         );
-        when(scoreService.leaderboard()).thenReturn(mockLeaderboard);
+        when(scoreService.leaderboard(anyInt(), anyInt())).thenReturn(mockLeaderboard);
 
         // 2. 準備 Request 與 Mock StreamObserver
         LeaderboardRequest request = LeaderboardRequest.newBuilder().build();

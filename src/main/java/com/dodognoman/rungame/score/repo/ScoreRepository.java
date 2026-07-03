@@ -39,6 +39,7 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
     List<LeaderboardEntry> findLeaderboard(Pageable pageable);
 
     // 串流讀取排行榜：使用 Stream 與 Fetch Size 避免 OOM
+    // 一直占用連線感覺不太好，不如用 pageable 就好了
     @org.springframework.data.jpa.repository.QueryHints(
             @jakarta.persistence.QueryHint(name = "org.hibernate.fetchSize", value = "50")
     )
@@ -47,5 +48,6 @@ public interface ScoreRepository extends JpaRepository<Score, Long> {
             from Score s
             order by s.score desc
             """)
+    @Deprecated
     java.util.stream.Stream<LeaderboardEntry> streamLeaderboard();
 }
