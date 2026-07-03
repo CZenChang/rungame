@@ -196,6 +196,7 @@ Base URL：`/rungame/api/scores`
 | `PUT /me` | 🔒 需 JWT |
 | `GET /me` | 🔒 需 JWT |
 | `GET /leaderboard` | 🌐 公開 |
+| `GET /leaderboard/stream` | 🌐 公開 |
 
 ## PUT /me 🔒
 
@@ -250,7 +251,16 @@ Base URL：`/rungame/api/scores`
 
 ## GET /leaderboard 🌐
 
-排行榜前十名，依分數由高到低排序。
+排行榜，依分數由高到低排序，支援分頁。
+
+### Query 參數
+
+| 參數 | 型別 | 必填 | 預設 | 限制 | 說明 |
+|------|------|------|------|------|------|
+| `size` | int | ✗ | `10` | >= 1 | 每頁筆數 |
+| `page` | int | ✗ | `0` | >= 0 | 頁碼，從 `0` 起算 |
+
+範例：`GET /rungame/api/scores/leaderboard?size=20&page=1`
 
 ### Response `200 OK`（`data`）
 
@@ -265,6 +275,48 @@ Base URL：`/rungame/api/scores`
 |------|------|------|
 | `username` | string | 使用者名稱 |
 | `score` | int | 分數 |
+
+### 錯誤
+
+| Status | 原因 |
+|--------|------|
+| `400` | 參數驗證失敗（`size < 1` 或型別不符） |
+
+---
+
+## GET /leaderboard/stream 🌐
+
+與 `GET /leaderboard` 相同的排行榜資料，但改以 **Server-Sent Events（SSE）** 逐筆串流回傳，供前端邊接收邊呈現。
+
+- Content-Type：`text/event-stream`
+- 逐筆送出 `LeaderboardEntry`，全部送完後補送一個空物件 `{}` 作為結束標記（避免瀏覽器 SSE 預設自動重連），隨後關閉連線。
+
+### Query 參數
+
+同 `GET /leaderboard`：
+
+| 參數 | 型別 | 必填 | 預設 | 限制 | 說明 |
+|------|------|------|------|------|------|
+| `size` | int | ✗ | `10` | >= 1 | 每頁筆數 |
+| `page` | int | ✗ | `0` | >= 0 | 頁碼，從 `0` 起算 |
+
+### Response `200 OK`（event stream）
+
+```
+data:{"username":"alice","score":300}
+
+data:{"username":"bob","score":200}
+
+data:{}
+```
+
+> 每筆為一個 SSE `data:` 事件；最後的 `data:{}` 代表資料已送完。
+
+### 錯誤
+
+| Status | 原因 |
+|--------|------|
+| `400` | 參數驗證失敗（`size < 1` 或型別不符） |
 
 ---
 
