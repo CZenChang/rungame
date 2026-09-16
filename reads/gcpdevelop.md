@@ -54,6 +54,18 @@ wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.11.0
 chmod +x cloud-sql-proxy
 ```
 
+#### 手動測試 Cloud SQL Proxy（可選）
+
+在尚未設定 systemd 服務前，若需先手動測試資料庫連線：
+
+```bash
+# 背景執行 proxy（監聽 port 5432）
+./cloud-sql-proxy --port 5432 <專案ID>:<區域>:<Cloud SQL實例名稱> &
+
+# 測試完成後停止 proxy
+pkill -f cloud-sql-proxy
+```
+
 ### 設定 2GB Swap
 
 ```bash
@@ -93,6 +105,18 @@ sudo apt-get install -y iptables-persistent
 ---
 
 ## 步驟四：systemd 服務設定
+
+### （可選）手動前景啟動驗證
+
+在建立 systemd 自動化服務前，可先於終端機前景執行確認程式與 Cloud SQL Proxy 連線正常：
+
+```bash
+DB_PASS='****' ./jdk-25.0.3+9/bin/java -Xms128m -Xmx512m -jar rungame-0.0.1-SNAPSHOT.jar
+```
+
+> **說明**：
+> - `DB_PASS='****'`：此處填入實際的 PostgreSQL 密碼。
+> - 確認看到 Spring Boot 成功啟動日誌後，按 `Ctrl + C` 關閉，即可繼續配置下方的 systemd 背景服務。
 
 ### Cloud SQL Proxy 服務
 
@@ -136,11 +160,11 @@ User=<VM使用者名稱>
 WorkingDirectory=/home/<VM使用者名稱>
 Environment="SPRING_PROFILES_ACTIVE=gcp"
 Environment="DB_USER=<DB使用者>"
-Environment="DB_PASS=<DB密碼>"
+Environment="DB_PASS=****"
 Environment="ACTUATOR_PUBLIC_KEY=<Base64 ECDSA P-256 公鑰>"
 ExecStart=/home/<VM使用者名稱>/jdk-25.0.3+9/bin/java \
-  -Xms512m -Xmx512m \
-  -jar /home/<VM使用者名稱>/rungame.jar
+  -Xms256m -Xmx512m \
+  -jar /home/<VM使用者名稱>/rungame-0.0.1-SNAPSHOT.jar
 SuccessExitStatus=143
 Restart=always
 RestartSec=10
@@ -149,7 +173,10 @@ RestartSec=10
 WantedBy=multi-user.target
 ```
 
-> 機敏環境變數（`DB_PASS`、`ACTUATOR_PUBLIC_KEY`）寫在 systemd unit 內，確保檔案權限為 `600`、`root:root`。
+> **安全說明**：
+> 1. `DB_PASS` 為 PostgreSQL 密碼，部署於 VM 時請填入真實密碼。
+> 2. 機敏環境變數（`DB_PASS`、`ACTUATOR_PUBLIC_KEY`）寫在 systemd unit 內，設定完畢請確保檔案權限為 `600`、擁有者為 `root:root`，且切勿將帶有明文密碼的檔案 commit 進版本控制。
+> 3. `-jar` 後方請對應實際上傳的檔案名稱（如 `rungame-0.0.1-SNAPSHOT.jar`）。
 
 ---
 

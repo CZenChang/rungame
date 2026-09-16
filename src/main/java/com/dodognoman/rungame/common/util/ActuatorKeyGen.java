@@ -16,6 +16,7 @@ import java.util.Base64;
  */
 public class ActuatorKeyGen {
 
+    @SuppressWarnings("java:S106")
     public static void main(String[] args) throws Exception {
         KeyPairGenerator gen = KeyPairGenerator.getInstance("EC");
         gen.initialize(256); // P-256

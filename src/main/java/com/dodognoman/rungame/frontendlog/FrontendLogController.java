@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -29,9 +30,23 @@ public class FrontendLogController {
     private static final int MAX_LENGTH = 4000;
 
     @PostMapping(consumes = MediaType.TEXT_PLAIN_VALUE)
-    public ApiResponse<Void> write(@RequestBody(required = false) String content, HttpServletRequest request) {
+    public ApiResponse<Void> write(
+            @RequestParam("level") String level,
+            @RequestBody(required = false) String content, HttpServletRequest request) {
 
-        frontendLog.error("ip={} | {}", request.getRemoteAddr(), sanitize(content));
+        switch (level) {
+            case "INFO":
+                frontendLog.info("ip={} | {}", request.getRemoteAddr(), sanitize(content));
+                break;
+            case "WARN":
+                frontendLog.warn("ip={} | {}", request.getRemoteAddr(), sanitize(content));
+                break;
+            case "ERROR":
+                frontendLog.error("ip={} | {}", request.getRemoteAddr(), sanitize(content));
+                break;
+            default:
+                break;
+        }
         return ApiResponse.ok("OK");
     }
 

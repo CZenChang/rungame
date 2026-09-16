@@ -328,17 +328,19 @@ Base URL：`/rungame/api/frontend-log`
 **內容格式由前端自行定義**，後端只負責落地，不解析欄位。
 
 | 端點 | 驗證 |
-|------|------|
-| `POST /` | 🌐 公開 |
+|------|-----|
+| `POST /` | 🔒  |
 
-## POST / 🌐
+## POST / 🔒
 
 寫入一筆前端 log。
 
+### Query 參數
+|level|log 等級（ ERROR、WARN、INFO）|
 ### Request
 
 - Content-Type：`text/plain`
-- Body：純字串（格式前端自訂，例如自己拼成 JSON 字串或 `level|path|message`）
+- Body：純字串（格式前端自訂，例如自己拼成 JSON 字串或 `path|message`）
 
 ```
 ERROR | /home | TypeError: undefined is not a function
@@ -346,6 +348,7 @@ ERROR | /home | TypeError: undefined is not a function
 
 | 項目 | 說明 |
 |------|------|
+|level|log 等級（ ERROR、WARN、INFO）|
 | Body | 純文字字串，可為空 |
 
 ### 後端處理（安全底線）
